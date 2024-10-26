@@ -61,6 +61,8 @@ public:
 
     // 캐시 출력 (디버깅용)
     //void printCache() const;
+
+    bool clearAll();
 };
 
 #endif // ARPCACHETABLE_H

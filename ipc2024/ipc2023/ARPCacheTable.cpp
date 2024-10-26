@@ -49,6 +49,23 @@ void ARPCacheTable::removeEntry(const unsigned char* ip) {
     }
 }
 
+bool ARPCacheTable::clearAll() {
+    if (cache.empty()) {
+        return false; // cache가 이미 비어 있는 경우 false 반환
+    }
+    try {
+        for (auto& pair : cache) {
+            delete pair.second;  // ARPCacheEntry 객체의 메모리 해제
+        }
+        cache.clear();  // 맵 초기화
+    }
+    catch (const std::exception& e) {
+        return false;  // 메모리 접근 실패 시 false 반환
+    }
+    cache.clear();
+    return true;
+}
+
 //void ARPCacheTable::printCache() const {
 //    for (const auto& pair : cache) {
 //        const auto& ip = pair.first;
