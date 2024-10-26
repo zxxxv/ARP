@@ -1,0 +1,81 @@
+// EthernetLayer.cpp: implementation of the CEthernetLayer class.
+//
+//////////////////////////////////////////////////////////////////////
+
+#include "stdafx.h"
+#include "pch.h"
+#include "EthernetLayer.h"
+
+#ifdef _DEBUG
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#define new DEBUG_NEW
+#endif
+
+CEthernetLayer::CEthernetLayer(char* pName)
+    : CBaseLayer(pName)
+{
+    ResetHeader();
+}
+
+CEthernetLayer::~CEthernetLayer()
+{
+}
+
+// 24.10.06 memset(m_sHeader.enet_data, ETHER_MAX_DATA_SIZE, 6) 수정
+void CEthernetLayer::ResetHeader()
+{
+    // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
+    memset(m_sHeader.enet_dstaddr, 0, 6);
+    memset(m_sHeader.enet_srcaddr, 0, 6);
+    memset(m_sHeader.enet_data, ETHER_MAX_DATA_SIZE, 6);
+    m_sHeader.enet_type = 0;
+}
+
+void CEthernetLayer::SetSourceAddress(unsigned char* pAddress)
+{
+    // 받은 나의 주소를 이더넷 source 주소로 설정
+    memcpy(m_sHeader.enet_srcaddr, pAddress, 6);
+}
+
+void CEthernetLayer::SetDestinAddress(unsigned char* pAddress)
+{
+    // 받은 목적지 주소를 이더넷 destination 주소로 설정
+    memcpy(m_sHeader.enet_dstaddr, pAddress, 6);
+}
+
+// 24.09.29 unsigned short type 으로 받아서 enet_type 추가
+BOOL CEthernetLayer::Send(unsigned char* payload_data, int payload_data_len, unsigned short type)
+{
+    // ChatApp 계층에서 받은 App 계층의 Frame 길이만큼 Ethernet계층의 data로 넣는다
+    memcpy(m_sHeader.enet_data, payload_data, payload_data_len);
+    m_sHeader.enet_type = type;
+    BOOL bSuccess = FALSE;
+
+    // 만든 이더넷 data에 이더넷 헤드를 추가해서 NI 계층으로 보냄
+    bSuccess = mp_UnderLayer->Send((unsigned char*)&m_sHeader, payload_data_len + ETHER_HEADER_SIZE); //1514
+
+    return bSuccess;
+}
+
+// 24.09.29 enet_type 확인 후 fileTrans 혹은 chatApp으로 보냄/ chatApp: 0x2080, fileTrans: 0x2090
+BOOL CEthernetLayer::Receive(unsigned char* payload_data)
+{
+    // payload_data를 이더넷 헤더 구조체로 넣는다
+    PETHERNET_HEADER pFrame = (PETHERNET_HEADER)payload_data;
+
+    BOOL bSuccess = FALSE;
+    
+    // 목적지 주소가 나의 주소와 일치하는지, memcmp 동일한 값이면 0 반환
+    if (memcmp(pFrame->enet_dstaddr, m_sHeader.enet_srcaddr, 6) != 0)
+        return FALSE;
+    // 내가 보낸 값이 나에게 온건지
+    if (memcmp(pFrame->enet_srcaddr, m_sHeader.enet_srcaddr, 6) == 0)
+        return FALSE;
+
+    if (pFrame->enet_type == CHAT_LAYER_IDENTIFIER)
+        bSuccess = mp_aUpperLayer[0]->Receive((unsigned char*)pFrame->enet_data);
+    else if(pFrame->enet_type == FILE_LAYER_IDENTIFIER)
+        bSuccess = mp_aUpperLayer[1]->Receive((unsigned char*)pFrame->enet_data);
+    return bSuccess;
+}
