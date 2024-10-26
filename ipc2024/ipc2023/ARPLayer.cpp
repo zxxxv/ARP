@@ -25,13 +25,13 @@ void CARPLayer::ResetHeader()
     // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
     arpHeader.hard_type = 1;
     arpHeader.prot_type = 0x0800;
-    arpHeader.mac_len = ARP_HARD_LEN;
-    arpHeader.ip_len = ARP_PROT_LEN;
+    arpHeader.mac_len = 6;
+    arpHeader.ip_len = 4;
     arpHeader.op_code = 0;
-    memset(arpHeader.source_mac, ARP_HARD_LEN, 0);
-    memset(arpHeader.source_ip, ARP_PROT_LEN, 0);
-    memset(arpHeader.target_mac, ARP_HARD_LEN, 0);
-    memset(arpHeader.target_ip, ARP_PROT_LEN, 0);
+    memset(arpHeader.source_mac, 6, 0);
+    memset(arpHeader.source_ip, 4, 0);
+    memset(arpHeader.target_mac, 6, 0);
+    memset(arpHeader.target_ip, 4, 0);
 }
 
 void CARPLayer::SetSenderInfo(const unsigned char* macAddress, const unsigned char* ipAddress) {
@@ -58,14 +58,14 @@ BOOL CARPLayer::SetEthernetDest(unsigned char* target_mac) {
 void CARPLayer::createRequestPacket() {
     // 선택된 IP주소에 해당하는 mac주소가 있으면 전송 X
     // 없으면 브로드캐스트로 전송
-    if (addOrPresent(target_ip, 0, false, false) == true) {
+    // mac주소가 0이면 없을수 밖에 없기때문에 의미없다
+    unsigned char defaultMac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+    if (addOrPresent(target_ip, defaultMac, false, false)) {
         ResetHeader();
         memcpy(arpHeader.source_mac, sender_mac, 6);
         memcpy(arpHeader.source_ip, sender_ip, 4);
-        //memset(arpheader.target_mac, 0, 6);  // Unknown MAC address in ARP request
         memcpy(arpHeader.target_ip, target_ip, 4);
 
-        //SetEthernetDest(nullptr, 1);
         createPacket(1);
     }
 }
@@ -84,10 +84,8 @@ void CARPLayer::createReplyPacket(unsigned char* payload_data) {
     memcpy(arpHeader.target_ip, data->source_ip, data->ip_len);   // source_ip -> target_ip
 
     // Source 필드 설정: 
-    memcpy(arpHeader.source_mac, data->source_mac, data->mac_len);
+    memcpy(arpHeader.source_mac, sender_mac, data->mac_len);
     memcpy(arpHeader.source_ip, sender_ip, data->ip_len);
-
-    //SetEthernetDest(arpHeader.target_mac, 2);
 
     createPacket(2);
 };
@@ -103,10 +101,12 @@ BOOL CARPLayer::Send(unsigned char* ppayload, int nlength)
     BOOL success = ((CEthernetLayer*)(this->GetUnderLayer()))->Send(ppayload, ARP_HEADER_SIZE, ARP_LAYER_IDENTIFIER);  // ARP 패킷 타입 0x0806
 
     if (success) {
-        //캐시 테이블 업데이트
+        // target_ip, target_mac, incomplete으로 테이블에 추가
+        //addOrPresent(arpHeader.target_ip, arpHeader.target_mac, false, false);
+        addOrPresent(arpHeader.target_ip, 0, false, false);
     }
     else {
-        //패킷 전송 실패 오류
+        AfxMessageBox(_T("패킷 전송 실패 - ARP Send"));
     }
 
     return success;
@@ -121,7 +121,7 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     if (data->op_code == 1) {
         // sender의 mac주소와 ip주소 전달
         if (data->target_ip == sender_ip)
-            addOrPresent(data->source_ip, data->source_mac, true, true);
+            addOrPresent(data->source_ip, data->source_mac, true, true); // 질문 중복이면?
             createReplyPacket(payload_data);
     }
     //받은 ARP OP code가 2 - ARP cashe table 업데이트 
@@ -135,7 +135,7 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
 
 void CARPLayer::onEntryTimeout(const unsigned char* ip) {
     std::string strIP = binaryToString(ip);
-    std::cout << "Entry with IP " << strIP << " has timed out. Removing from cache." << std::endl;
+    //std::cout << "Entry with IP " << strIP << " has timed out. Removing from cache." << std::endl;
     removeEntry(ip);
     //dlg에 엔트리 제거 후 테이블 업데이트
 }

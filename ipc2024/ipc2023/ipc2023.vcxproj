@@ -192,9 +192,6 @@
     <ClInclude Include="ARPCacheTable.h" />
     <ClInclude Include="ARPLayer.h" />
     <ClInclude Include="BaseLayer.h" />
-    <ClInclude Include="ChatAppLayer.h" />
-    <ClInclude Include="FileLayer.h" />
-    <ClInclude Include="FileAppLayer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="ipc2023.h" />
     <ClInclude Include="ipc2023Dlg.h" />
@@ -212,10 +209,7 @@
     <ClCompile Include="ARPCacheTable.cpp" />
     <ClCompile Include="ARPLayer.cpp" />
     <ClCompile Include="BaseLayer.cpp" />
-    <ClCompile Include="ChatAppLayer.cpp" />
     <ClCompile Include="EthernetLayer.cpp" />
-    <ClCompile Include="FileLayer.cpp" />
-    <ClCompile Include="FileAppLayer.cpp" />
     <ClCompile Include="ipc2023.cpp" />
     <ClCompile Include="ipc2023Dlg.cpp" />
     <ClCompile Include="LayerManager.cpp" />

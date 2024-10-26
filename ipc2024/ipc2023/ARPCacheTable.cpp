@@ -4,7 +4,6 @@
 
 ARPCacheTable::ARPCacheTable() {
     // 필요한 초기화 작업을 수행할 수 있습니다.
-    std::cout << "ARPCacheTable initialized." << std::endl;
 }
 
 ARPCacheTable::~ARPCacheTable() {

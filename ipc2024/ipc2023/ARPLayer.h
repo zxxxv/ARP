@@ -59,9 +59,8 @@ public:
     } ARP_HEADER, * PARP_HEADER;
 private:
     void ResetHeader();
+
 #define ARP_HEADER_SIZE 28
-#define ARP_HARD_LEN 6
-#define ARP_PROT_LEN 4
 #define ARP_LAYER_IDENTIFIER 0x8060
 
 protected:

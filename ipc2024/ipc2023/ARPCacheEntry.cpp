@@ -11,7 +11,7 @@ ARPCacheEntry::ARPCacheEntry(const unsigned char* ipAddress, const unsigned char
     }
     else {
         // MFC 3분 타이머 설정 (임시 엔트리 생성 시)
-        m_timerId = SetTimer(0, 3 * 60 * 1000, nullptr); // 3분(180초) 타이머 설정, ID 자동 생성
+        m_timerId = SetTimer(0, 3 * 60 * 1000, nullptr); // 3분(180초) 타이머 설정, ID 자동 생성 ***디버깅중 여기서 오류 발생***
     }
 }
 

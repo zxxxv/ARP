@@ -7,27 +7,15 @@
 #define IDS_ABOUTBOX                    101
 #define IDD_IPC2023_DIALOG              102
 #define IDR_MAINFRAME                   128
-#define IDC_LIST1                       1000
-#define IDC_LIST_CHAT                   1000
-#define IDC_EDIT1                       1001
 #define IDC_EDIT_SRC                    1001
-#define IDC_EDIT2                       1002
-#define IDC_EDIT_DST                    1002
-#define IDC_EDIT3                       1003
-#define IDC_EDIT_MSG                    1003
-#define bt_send                         1004
-#define IDC_BUTTON_SEND                 1004
-#define bt_setting                      1005
-#define IDC_BUTTON_ADDR                 1005
-#define IDC_CHECK1                      1006
-#define IDC_CHECK_TOALL                 1006
-#define IDC_COMBO4                      1010
-#define IDC_PROGRESS                    1011
-#define IDC_BUTTON1                     1012
-#define IDC_EDIT5                       1014
-#define IDC_BUTTON2                     1015
-#define IDC_EDIT6                       1016
-#define IDC_EDIT_FILE                   1016
+#define IDC_BUTTON_IP_SEND              1005
+#define IDC_BUTTON_SELECT               1006
+#define IDC_BUTTON_DELETE               1009
+#define IDC_COMBO                       1010
+#define IDC_BUTTON_DELETE_ALL           1011
+#define IDC_IP_TARGET                   1017
+#define IDC_IP_SOURCE                   1018
+#define IDC_LIST_CTR                    1021
 
 // Next default values for new objects
 // 
@@ -35,7 +23,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        130
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_CONTROL_VALUE         1022
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
