@@ -20,5 +20,6 @@
 #include "ARPCacheEntry.h"
 #include "ARPCacheTable.h"
 #include "TimeoutObserver.h"
+#include "ipc2023Dlg.h"
 
 #endif //PCH_H

@@ -493,3 +493,20 @@ void Cipc2023Dlg::OnBnClickedArpTable()
 {
 	m_ARP->printCache();
 }
+
+void Cipc2023Dlg::TimeoutEntryDelete(const unsigned char* ip)
+{
+	int Index = 0;
+	int itemCount = m_ListCtrl.GetItemCount(); // 전체 항목 개수
+	CString tarIP;
+	tarIP.Format(_T("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+
+	for (int i = 0; i < itemCount; ++i) {
+		CString itemText = m_ListCtrl.GetItemText(i, 0); // 특정 열의 텍스트 가져오기
+		if (itemText.Find(tarIP) != -1) { // searchText가 포함된 항목을 찾으면
+			Index = i; // 해당 인덱스 반환
+			break;
+		}
+	}
+	m_ListCtrl.DeleteItem(Index);
+}

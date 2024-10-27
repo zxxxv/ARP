@@ -143,7 +143,6 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
 
 void CARPLayer::onEntryTimeout(const unsigned char* ip) {
     std::string strIP = binaryToString(ip);
-    //std::cout << "Entry with IP " << strIP << " has timed out. Removing from cache." << std::endl;
+    ((Cipc2023Dlg*)this->GetUpperLayer(0))->TimeoutEntryDelete(ip);
     removeEntry(ip);
-
 }
