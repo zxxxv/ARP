@@ -147,6 +147,8 @@ BOOL Cipc2023Dlg::OnInitDialog()
 	m_ListCtrl.InsertColumn(1, _T("Ethernet Address"), LVCFMT_LEFT, rt.Width()+220);
 	m_ListCtrl.InsertColumn(2, _T("Status"), LVCFMT_LEFT, rt.Width()+150);
 
+	GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(FALSE);
+
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -369,7 +371,7 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 		BYTE b1, b2, b3, b4;
 		m_ipTarget.GetAddress(b1, b2, b3, b4);
 
-		// unsigend char로 변환
+		// unsigned char로 변환
 		unsigned char targetIp[4];
 		targetIp[0] = b1;
 		targetIp[1] = b2;
@@ -378,6 +380,16 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 
 		CString tarIP;
 		tarIP.Format(_T("%d.%d.%d.%d"), b1, b2, b3, b4);
+
+		// 중복된 IP가 있는지 확인
+		int itemCount = m_ListCtrl.GetItemCount();
+		for (int i = 0; i < itemCount; ++i) {
+			CString existingIP = m_ListCtrl.GetItemText(i, 0);
+			if (existingIP == tarIP) {
+				AfxMessageBox(_T("이미 존재하는 IP 주소입니다."));
+				return;
+			}
+		}
 
 		// Mac 초기값 설정
 		CString initMac;
@@ -416,6 +428,7 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 	}
 }
 
+
 void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 {	
 	if (m_unSrcMac.IsEmpty() || m_ipSource.IsBlank()) {
@@ -443,6 +456,9 @@ void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 
 		// Select 버튼 비활성화
 		GetDlgItem(IDC_BUTTON_SELECT)->EnableWindow(FALSE);
+
+		// Send 버튼 활성화
+		GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(TRUE);
 	}
 }
 
