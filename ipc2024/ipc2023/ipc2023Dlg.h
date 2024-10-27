@@ -54,7 +54,7 @@ public:
 
 public:
 	BOOL			Receive(unsigned char* ppayload);
-	void UpdateListCtrlItem(int row, int col, const CString& newValue); // 캐시 테이블 변경
+	void UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status); // 캐시 테이블 변경
 
 private:
 	CLayerManager	m_LayerMgr;

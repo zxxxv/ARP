@@ -201,10 +201,26 @@ HCURSOR Cipc2023Dlg::OnQueryDragIcon()
 
 BOOL Cipc2023Dlg::Receive(unsigned char* ppayload)
 {
-	//CString message = _T("");
-	//message.Format(_T("[%s | %s] %s"), (LPCTSTR)m_unDstAddr, (LPCTSTR)m_unSrcAddr, ppayload);
+	unsigned char* ip = ppayload;              // 첫 4바이트: IP
+	unsigned char* mac = ppayload + 4;         // 다음 6바이트: MAC
+	unsigned char* status = ppayload + 10;     // 나머지 부분: Status
 
-	//m_ListChat.AddString((LPCTSTR)message);
+	// IP, MAC, Status를 CString으로 변환
+	CString strIP, strMAC, strStatus;
+
+	// IP 변환
+	strIP.Format(_T("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+
+	// MAC 변환
+	strMAC.Format(_T("%02X:%02X:%02X:%02X:%02X:%02X"),
+		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+	// Status 변환 (예: 문자열 형태로 처리)
+	strStatus = (LPCTSTR)status; // 필요 시 적절한 변환 처리 필요
+
+	// 리스트 컨트롤을 업데이트합니다.
+	UpdateListCtrlItem(strIP, strMAC, strStatus);
+
 	return TRUE;
 }
 
@@ -448,8 +464,21 @@ void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 	}
 }
 
-void Cipc2023Dlg::UpdateListCtrlItem(int row, int col, const CString& newValue)
+void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정 함수
 {
-	// Mac주소와 Status 업데이트 해야됨
-	m_ListCtrl.SetItemText(row, col, newValue);
+	// string으로 형 변환 해줘야 됨
+
+	int itemCount = m_ListCtrl.GetItemCount();
+
+	for (int i = 0; i < itemCount; ++i)
+	{
+		CString column1Value = m_ListCtrl.GetItemText(i, 0);
+
+		if (column1Value == ip)
+		{
+			m_ListCtrl.SetItemText(i, 1, mac);
+			m_ListCtrl.SetItemText(i, 2, status);
+			break;
+		}
+	}
 }
