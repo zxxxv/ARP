@@ -20,12 +20,12 @@ std::string ARPCacheTable::binaryToString(const unsigned char* ip) {
         std::to_string(ip[3]);
 }
 
-void ARPCacheTable::onEntryTimeout(const unsigned char* ip) {
-    std::string strIP = binaryToString(ip);
-    CString CIp(strIP.c_str());
-    AfxMessageBox(CIp);
-    removeEntry(ip);
-}
+//void ARPCacheTable::onEntryTimeout(const unsigned char* ip) {
+//    std::string strIP = binaryToString(ip);
+//    CString CIp(strIP.c_str());
+//    AfxMessageBox(CIp);
+//    removeEntry(ip);
+//}
 
 bool ARPCacheTable::addOrPresent(const unsigned char* ip, const unsigned char* mac, const bool& state, const bool& isPermanent) {
     std::string strIP = binaryToString(ip);

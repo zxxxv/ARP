@@ -23,7 +23,7 @@ public:
     binaryToString: binary ip를 10진수 기반 문자열로 변환하는 함수. IP를 해시 테이블의 Key로 사용하기 때문에 필요합니다.
     */
 
-    void onEntryTimeout(const unsigned char* ip) override;
+    //void onEntryTimeout(const unsigned char* ip) override;
     /*
     onEntryTimeout: 타임아웃된 항목을 삭제하는 함수. Entry가 타임아웃되면 트리거된다.
         # parameter

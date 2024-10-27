@@ -53,6 +53,7 @@ public:
 public:
 	BOOL			Receive(unsigned char* ppayload);
 	void UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status); // 캐시 테이블 변경
+	void TimeoutEntryDelete(const unsigned char* ip)l;
 
 private:
 	CLayerManager	m_LayerMgr;

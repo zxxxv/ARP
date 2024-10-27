@@ -121,7 +121,7 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     if (data->op_code == 1) {
         // sender의 mac주소와 ip주소 전달
         if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
-            addOrPresent(data->source_ip, data->source_mac, true, true); // 중복이면?
+            addOrPresent(data->source_ip, data->source_mac, true, true); //
             
             // dlg 업데이트 하기
             unsigned char buffer[10];
@@ -149,7 +149,6 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
 
 void CARPLayer::onEntryTimeout(const unsigned char* ip) {
     std::string strIP = binaryToString(ip);
-    //std::cout << "Entry with IP " << strIP << " has timed out. Removing from cache." << std::endl;
+    ((Cipc2023Dlg*)this->GetUpperLayer(0))->TimeoutEntryDelete(ip);
     removeEntry(ip);
-
 }
