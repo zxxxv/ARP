@@ -82,7 +82,7 @@ void CARPLayer::createReplyPacket(unsigned char* payload_data) {
     memcpy(arpHeader.target_mac, data->source_mac, data->mac_len);  // source_mac -> target_mac
     memcpy(arpHeader.target_ip, data->source_ip, data->ip_len);   // source_ip -> target_ip
 
-    // Source 필드 설정: 
+    // Source 필드 설정:
     memcpy(arpHeader.source_mac, sender_mac, data->mac_len);
     memcpy(arpHeader.source_ip, sender_ip, data->ip_len);
 
@@ -120,9 +120,11 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     //받은 ARP OP code가 1 - ARP 응답 패킷 생성 함수 호출
     if (data->op_code == 1) {
         // sender의 mac주소와 ip주소 전달
-        if (data->target_ip == sender_ip)
+        if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
             addOrPresent(data->source_ip, data->source_mac, true, true); // 중복이면?
+            // dlg 업데이트 하기
             createReplyPacket(payload_data);
+        }
     }
     //받은 ARP OP code가 2 - ARP cashe table 업데이트 
     else if (data->op_code == 2) {

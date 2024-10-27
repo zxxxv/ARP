@@ -75,7 +75,7 @@ Cipc2023Dlg::Cipc2023Dlg(CWnd* pParent /*=nullptr*/) // Cipc2023Dlg의 생성자
 	m_LayerMgr.AddLayer(this);
 
 	// 레이어를 연결한다. (레이어 생성)
-	m_LayerMgr.ConnectLayers("NI ( *Ethernet ( *ARP ( *ChatDlg) ) )");
+	m_LayerMgr.ConnectLayers("NI ( *Ethernet ( *ARP ( *ChatDlg ) ) )");
 
 	m_Eth = (CEthernetLayer*)m_LayerMgr.GetLayer("Ethernet");
 	m_NI = (CNILayer*)m_LayerMgr.GetLayer("NI");
