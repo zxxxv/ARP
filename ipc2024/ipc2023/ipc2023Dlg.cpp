@@ -101,6 +101,7 @@ BEGIN_MESSAGE_MAP(Cipc2023Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_DELETE_ALL, &Cipc2023Dlg::OnBnClickedButtonDeleteAll)
 	ON_BN_CLICKED(IDC_BUTTON_IP_SEND, &Cipc2023Dlg::OnBnClickedButtonIpSend)
 	ON_BN_CLICKED(IDC_BUTTON_SELECT, &Cipc2023Dlg::OnBnClickedButtonSelect)
+	ON_BN_CLICKED(IDC_ARP_TABLE, &Cipc2023Dlg::OnBnClickedArpTable)
 END_MESSAGE_MAP()
 
 
@@ -343,12 +344,19 @@ void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
 	if (idx != -1)
 	{
 		CString strValue = m_ListCtrl.GetItemText(idx, 0);
-		const unsigned char* value = reinterpret_cast<const unsigned char*>(strValue.GetString());
+
+		unsigned char value[4];
+		int ip1, ip2, ip3, ip4;
+		_stscanf_s(strValue, _T("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+		value[0] = static_cast<unsigned char>(ip1);
+		value[1] = static_cast<unsigned char>(ip2);
+		value[2] = static_cast<unsigned char>(ip3);
+		value[3] = static_cast<unsigned char>(ip4);
 		m_ListCtrl.DeleteItem(idx);
 
 		// ARP 캐시 테이블에 있는 엔트리 제거하기
 		m_ARP->onEntryTimeout(value);
-		m_ARP->printCache();
+		//m_ARP->printCache();
 	}
 }
 
@@ -360,7 +368,7 @@ void Cipc2023Dlg::OnBnClickedButtonDeleteAll() // 전체 삭제 버튼
 
 	// ARP 캐시 테이블 엔트리 전체 삭제
 	m_ARP->clearAll();
-	m_ARP->printCache();
+	//m_ARP->printCache();
 }
 
 
@@ -418,7 +426,9 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 
 		// ARP 레이어 패킷 1번 전송시작
 		m_ARP->createRequestPacket();
-		m_ARP->printCache();
+
+		// ARP 캐시 테이블 출력
+		//m_ARP->printCache();
 
 		// ARP 캐시 테이블 업데이트 - 여기서 할지 arp 레이어에서 패킷 전송하고 할지
 
@@ -477,4 +487,9 @@ void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, cons
 			break;
 		}
 	}
+}
+
+void Cipc2023Dlg::OnBnClickedArpTable()
+{
+	m_ARP->printCache();
 }

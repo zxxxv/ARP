@@ -5,12 +5,10 @@
 #pragma once
 
 #include "LayerManager.h"	// Added by ClassView
-//#include "ChatAppLayer.h"	// Added by ClassView
 #include "EthernetLayer.h"	// Added by ClassView
-//#include "FileLayer.h"	// Added by ClassView
 #include "NILayer.h"
 #include "ARPLayer.h"
-//#include "FileAppLayer.h"
+
 // Cipc2023Dlg 대화 상자
 class Cipc2023Dlg : public CDialogEx, public CBaseLayer
 {
@@ -104,4 +102,5 @@ public:
 	CListCtrl m_ListCtrl;		// ARP 캐시 테이블
 	CIPAddressCtrl m_ipSource;	// 내 IP 주소
 	CIPAddressCtrl m_ipTarget;	// 상대 IP 주소
+	afx_msg void OnBnClickedArpTable();
 };
