@@ -58,7 +58,6 @@ BOOL CARPLayer::SetEthernetDest(unsigned char* target_mac) {
 void CARPLayer::createRequestPacket() {
     // 선택된 IP주소에 해당하는 mac주소가 있으면 전송 X
     // 없으면 브로드캐스트로 전송
-    // mac주소가 0이면 없을수 밖에 없기때문에 의미없다
     unsigned char defaultMac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     if (addOrPresent(target_ip, defaultMac, false, false)) {
         ResetHeader();
@@ -103,7 +102,8 @@ BOOL CARPLayer::Send(unsigned char* ppayload, int nlength)
     if (success) {
         // target_ip, target_mac, incomplete으로 테이블에 추가
         //addOrPresent(arpHeader.target_ip, arpHeader.target_mac, false, false);
-        addOrPresent(arpHeader.target_ip, 0, false, false);
+        //addOrPresent(arpHeader.target_ip, 0, false, false);
+        AfxMessageBox(_T("패킷 전송 성공 - ARP Send"));
     }
     else {
         AfxMessageBox(_T("패킷 전송 실패 - ARP Send"));
@@ -121,13 +121,19 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     if (data->op_code == 1) {
         // sender의 mac주소와 ip주소 전달
         if (data->target_ip == sender_ip)
-            addOrPresent(data->source_ip, data->source_mac, true, true); // 질문 중복이면?
+            addOrPresent(data->source_ip, data->source_mac, true, true); // 중복이면?
             createReplyPacket(payload_data);
     }
     //받은 ARP OP code가 2 - ARP cashe table 업데이트 
     else if (data->op_code == 2) {
-        // 캐시 테이블 업데이트
+        // ARP 캐시 테이블 업데이트
         handleArpReply(data->source_ip);
+        
+        // dlg 업데이트
+        unsigned char buffer[10];
+        memcpy(buffer, data->source_mac, 6);  // source_mac 복사 (6 bytes)
+        memcpy(buffer + 6, data->source_ip, 4);  // source_ip 복사 (4 bytes)
+        mp_aUpperLayer[0]->Receive(buffer);
     };
 
     return true;
@@ -137,5 +143,5 @@ void CARPLayer::onEntryTimeout(const unsigned char* ip) {
     std::string strIP = binaryToString(ip);
     //std::cout << "Entry with IP " << strIP << " has timed out. Removing from cache." << std::endl;
     removeEntry(ip);
-    //dlg에 엔트리 제거 후 테이블 업데이트
+
 }

@@ -201,9 +201,8 @@ HCURSOR Cipc2023Dlg::OnQueryDragIcon()
 
 BOOL Cipc2023Dlg::Receive(unsigned char* ppayload)
 {
-	unsigned char* ip = ppayload;              // 첫 4바이트: IP
-	unsigned char* mac = ppayload + 4;         // 다음 6바이트: MAC
-	unsigned char* status = ppayload + 10;     // 나머지 부분: Status
+	unsigned char* mac = ppayload;
+	unsigned char* ip = ppayload + 6;
 
 	// IP, MAC, Status를 CString으로 변환
 	CString strIP, strMAC, strStatus;
@@ -215,10 +214,14 @@ BOOL Cipc2023Dlg::Receive(unsigned char* ppayload)
 	strMAC.Format(_T("%02X:%02X:%02X:%02X:%02X:%02X"),
 		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 
-	// Status 변환 (예: 문자열 형태로 처리)
-	strStatus = (LPCTSTR)status; // 필요 시 적절한 변환 처리 필요
+	// Status 변환
+	strStatus.Format(_T("%s"), "complete");
 
-	// 리스트 컨트롤을 업데이트합니다.
+	CString message;
+	message.Format(_T("변경 IP: %s, MAC: %s, Status: %s"), strIP, strMAC, strStatus);
+	AfxMessageBox(message);
+
+	// 리스트 컨트롤 업데이트
 	UpdateListCtrlItem(strIP, strMAC, strStatus);
 
 	return TRUE;
@@ -226,7 +229,6 @@ BOOL Cipc2023Dlg::Receive(unsigned char* ppayload)
 
 BOOL Cipc2023Dlg::PreTranslateMessage(MSG* pMsg)
 {
-	// TODO: Add your specialized code here and/or call the base class
 	switch (pMsg->message)
 	{
 	case WM_KEYDOWN:
@@ -316,41 +318,6 @@ void Cipc2023Dlg::UCHAR2Str(UCHAR* src, CString& dst)
 		src[3], src[4], src[5]);
 }
 
-
-//void Cipc2023Dlg::OnBnClickedButtonAddr()
-//{
-//	UpdateData(TRUE);
-//
-//	if (m_unDstAddr.IsEmpty() || // SrcAdd나 DstAdd 둘 중 하나라도 설정되어있지 않다면 오류 메시지를 띄운다.
-//		m_unSrcAddr.IsEmpty())
-//	{
-//		AfxMessageBox(_T("주소를 설정 오류발생",
-//			"경고"),
-//			MB_OK | MB_ICONSTOP);
-//
-//		return;
-//	}
-//
-//	if (m_bSendReady) { // 대화상자가 생성될 때, m_bSendReady는 FALSE로 초기화된다.
-//		SetDlgState(IPC_INITIALIZING);
-//		// 주소 재설정 시 파일 전송 버튼 비활성화
-//	}
-//	else {
-//		Str2UCHAR(m_unSrcAddr, m_ucSrcAddrArray);
-//		Str2UCHAR(m_unDstAddr, m_ucDstAddrArray);
-//		//m_Eth->SetSourceAddress(m_ucSrcAddrArray); // ChatApp 레이어의 헤더 정보에 SrcAdd 값을 저장
-//		//m_Eth->SetDestinAddress(m_ucDstAddrArray); // ChatApp 레이어의 헤더 정보에 DstAdd 값을 저장
-//
-//		
-//
-//		SetDlgState(IPC_READYTOSEND);
-//	}
-//
-//	m_bSendReady = !m_bSendReady; // 초기 m_bSendReady 값을 반전시킨다. 
-//	// 홀수번 작동할 때, Address 값 설정
-//	// 짝수번 작동할 때, Dlg 초기화(재설정)
-//}
-
 void Cipc2023Dlg::OnCbnSelchangeCombo()
 {
 	UpdateData(TRUE);
@@ -365,18 +332,33 @@ void Cipc2023Dlg::OnCbnSelchangeCombo()
 }
 
 
-void Cipc2023Dlg::OnBnClickedButtonDelete()	// 삭제 버튼
+void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
 {
 	POSITION pos;
 	pos = m_ListCtrl.GetFirstSelectedItemPosition();
 	int idx = m_ListCtrl.GetNextSelectedItem(pos);
-	m_ListCtrl.DeleteItem(idx);
+
+	if (idx != -1)
+	{
+		CString strValue = m_ListCtrl.GetItemText(idx, 0);
+		const unsigned char* value = reinterpret_cast<const unsigned char*>(strValue.GetString());
+		m_ListCtrl.DeleteItem(idx);
+
+		// ARP 캐시 테이블에 있는 엔트리 제거하기
+		m_ARP->onEntryTimeout(value);
+		m_ARP->printCache();
+	}
 }
+
 
 
 void Cipc2023Dlg::OnBnClickedButtonDeleteAll() // 전체 삭제 버튼
 {
 	m_ListCtrl.DeleteAllItems();
+
+	// ARP 캐시 테이블 엔트리 전체 삭제
+	m_ARP->clearAll();
+	m_ARP->printCache();
 }
 
 
@@ -423,9 +405,11 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 		m_ListCtrl.SetItem(num, 2, LVIF_TEXT, status, 0, 0, 0, 0);
 
 		// ARP 레이어 패킷 1번 전송시작
-		//m_ARP->createRequestPacket();
+		m_ARP->createRequestPacket();
+		m_ARP->printCache();
 
 		// ARP 캐시 테이블 업데이트 - 여기서 할지 arp 레이어에서 패킷 전송하고 할지
+
 	}
 	else {
 		AfxMessageBox(_T("IP address를 입력하세요"));
@@ -434,8 +418,6 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 
 void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 {	
-	// 주소 설정시 버튼 비활성화 하기
-
 	if (m_unSrcMac.IsEmpty() || m_ipSource.IsBlank()) {
 		AfxMessageBox(_T("주소 설정 오류","경고"),MB_OK | MB_ICONSTOP);
 	}
@@ -466,8 +448,6 @@ void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 
 void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정 함수
 {
-	// string으로 형 변환 해줘야 됨
-
 	int itemCount = m_ListCtrl.GetItemCount();
 
 	for (int i = 0; i < itemCount; ++i)

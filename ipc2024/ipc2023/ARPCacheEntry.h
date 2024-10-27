@@ -1,10 +1,11 @@
 #ifndef ARPCACHEENTRY_H
 #define ARPCACHEENTRY_H
 
+#include "pch.h"
 #include <afxwin.h> // MFC 헤더
 #include <string>
-#include "pch.h"
 #include "TimeoutObserver.h"
+#include <iostream>
 
 class ARPCacheEntry : public CWnd {
 private:
@@ -13,6 +14,7 @@ private:
     bool m_state;
     UINT m_timerId; // 통합 타이머 ID
     TimeoutObserver* m_observer;
+    static UINT_PTR s_nextTimerId; // TimerID를 오브젝트마다 다르게 할당하기 위한 카운팅 전역변수
 
 public:
     ARPCacheEntry(const unsigned char* ipAddress, const unsigned char* macAddress, const bool& entryState, TimeoutObserver* obs, const bool& isPermanent);
@@ -55,8 +57,23 @@ public:
 
     // Getter 메서드들
     std::string getIP();
+    /*
+    getIP: entry의 ip에 대한 get 함수
+        # return value:
+        String IP = x.x.x.x
+    */
     std::string getMAC();
+    /*
+    getMac: entry의 mac에 대한 get 함수
+       # return value:
+       String mac = xx:xx:xx:xx:xx:xx
+    */
     std::string getState();
+    /*
+    getState: entry의 state에 대한 get 함수
+       # return value:
+       String state = "complete" xor "incomplete"
+    */
 
     DECLARE_MESSAGE_MAP()
 };
