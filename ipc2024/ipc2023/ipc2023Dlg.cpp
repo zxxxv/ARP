@@ -440,9 +440,9 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 
 
 void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
-{	
+{
 	if (m_unSrcMac.IsEmpty() || m_ipSource.IsBlank()) {
-		AfxMessageBox(_T("주소 설정 오류","경고"),MB_OK | MB_ICONSTOP);
+		AfxMessageBox(_T("주소 설정 오류", "경고"), MB_OK | MB_ICONSTOP);
 	}
 	else {
 		m_NI->PacketStartDriver();
@@ -475,8 +475,7 @@ void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정 함수
 {
 	int itemCount = m_ListCtrl.GetItemCount();
-
-	for (int i = 0; i < itemCount; ++i)
+	for (int i = 0; i <= itemCount; ++i)
 	{
 		CString column1Value = m_ListCtrl.GetItemText(i, 0);
 
@@ -485,6 +484,12 @@ void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, cons
 			m_ListCtrl.SetItemText(i, 1, mac);
 			m_ListCtrl.SetItemText(i, 2, status);
 			break;
+		}
+		else {
+			int num = m_ListCtrl.GetItemCount();
+			m_ListCtrl.InsertItem(num, ip);
+			m_ListCtrl.SetItem(num, 1, LVIF_TEXT, mac, 0, 0, 0, 0);
+			m_ListCtrl.SetItem(num, 2, LVIF_TEXT, status, 0, 0, 0, 0);
 		}
 	}
 }

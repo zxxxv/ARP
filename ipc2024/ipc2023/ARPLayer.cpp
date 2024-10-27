@@ -122,7 +122,13 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
         // sender의 mac주소와 ip주소 전달
         if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
             addOrPresent(data->source_ip, data->source_mac, true, true); // 중복이면?
+            
             // dlg 업데이트 하기
+            unsigned char buffer[10];
+            memcpy(buffer, data->source_mac, 6);  // source_mac 복사 (6 bytes)
+            memcpy(buffer + 6, data->source_ip, 4);  // source_ip 복사 (4 bytes)
+            mp_aUpperLayer[0]->Receive(buffer);
+
             createReplyPacket(payload_data);
         }
     }
