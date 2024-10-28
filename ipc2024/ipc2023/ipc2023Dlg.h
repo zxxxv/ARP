@@ -5,11 +5,10 @@
 #pragma once
 
 #include "LayerManager.h"	// Added by ClassView
-#include "ChatAppLayer.h"	// Added by ClassView
 #include "EthernetLayer.h"	// Added by ClassView
-#include "FileLayer.h"	// Added by ClassView
 #include "NILayer.h"
-#include "FileAppLayer.h"
+#include "ARPLayer.h"
+
 // Cipc2023Dlg 대화 상자
 class Cipc2023Dlg : public CDialogEx, public CBaseLayer
 {
@@ -53,7 +52,8 @@ public:
 
 public:
 	BOOL			Receive(unsigned char* ppayload);
-	inline void		SendData();
+	void UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status); // 캐시 테이블 변경
+	void TimeoutEntryDelete(const unsigned char* ip);
 
 private:
 	CLayerManager	m_LayerMgr;
@@ -73,9 +73,6 @@ private:
 
 	void			SetDlgState(int state);
 	inline void		EndofProcess();
-	inline void		SetRegstryMessage();
-	LRESULT			OnRegSendMsg(WPARAM wParam, LPARAM lParam);
-	LRESULT			OnRegAckMsg(WPARAM wParam, LPARAM lParam);
 	void Str2UCHAR(CString& src, UCHAR* dst);
 	void UCHAR2Str(UCHAR* src, CString& dst);
 
@@ -86,27 +83,25 @@ private:
 	DWORD			m_lParam;
 
 	// Object Layer
-	CChatAppLayer* m_ChatApp;
 	CNILayer* m_NI;
 	CEthernetLayer* m_Eth;
-	CFileAppLayer* m_File;
+	CARPLayer* m_ARP;
 
 public:
-	afx_msg void OnBnClickedButtonAddr();
-	afx_msg void OnBnClickedButtonSend();
 	CComboBox m_comboBox;
-	CString m_unSrcAddr;
-	CString m_unDstAddr;
-	CString m_stFilePath;
+	CString m_unSrcMac;
+	CString m_unDstMac;
 	UCHAR m_ucSrcAddrArray[6];
 	UCHAR m_ucDstAddrArray[6];
 	UCHAR m_unused[100];
-	CString m_stMessage;
-	CListBox m_ListChat;
-	afx_msg void OnBnClickedCheckToall();
-	afx_msg void OnCbnSelchangeCombo4();
+	afx_msg void OnCbnSelchangeCombo(); // 어댑터 선택
 	int m_index;
-	afx_msg void OnBnClickedButton2();
-	afx_msg void OnBnClickedButton1();
-	CProgressCtrl m_progressCtrl;
+	afx_msg void OnBnClickedButtonDelete();
+	afx_msg void OnBnClickedButtonDeleteAll();
+	afx_msg void OnBnClickedButtonIpSend(); 
+	afx_msg void OnBnClickedButtonSelect();
+	CListCtrl m_ListCtrl;		// ARP 캐시 테이블
+	CIPAddressCtrl m_ipSource;	// 내 IP 주소
+	CIPAddressCtrl m_ipTarget;	// 상대 IP 주소
+	afx_msg void OnBnClickedArpTable();
 };

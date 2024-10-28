@@ -2,10 +2,10 @@
 #ifndef ARPCACHETABLE_H
 #define ARPCACHETABLE_H
 
-#include <unordered_map>
-//#include <iostream>
-#include <string>
 #include "pch.h"
+#include <unordered_map>
+#include <iostream>
+#include <string>
 #include "ARPCacheEntry.h"
 
 // ARPCacheTable 클래스 정의
@@ -20,7 +20,7 @@ public:
 
     std::string binaryToString(const unsigned char* ip);
     /*
-    binaryToString: binary ip를 10진수 기반 문자열로 변환하는 함수
+    binaryToString: binary ip를 10진수 기반 문자열로 변환하는 함수. IP를 해시 테이블의 Key로 사용하기 때문에 필요합니다.
     */
 
     //void onEntryTimeout(const unsigned char* ip) override;
@@ -59,8 +59,10 @@ public:
     removeEntry: 입력된 ip 주소를 기반으로 해당되는 entry를 테이블에서 제거하는 함수
     */
 
+    bool clearAll();
+
     // 캐시 출력 (디버깅용)
-    //void printCache() const;
+    void printCache() const;
 };
 
 #endif // ARPCACHETABLE_H

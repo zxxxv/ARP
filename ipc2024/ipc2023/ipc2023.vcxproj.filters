@@ -39,22 +39,13 @@
     <ClInclude Include="LayerManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ChatAppLayer.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
     <ClInclude Include="EthernetLayer.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FileLayer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="NILayer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ipc2023Dlg.h">
-      <Filter>헤더 파일</Filter>
-    </ClInclude>
-    <ClInclude Include="FileAppLayer.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ARPLayer.h">
@@ -83,22 +74,13 @@
     <ClCompile Include="LayerManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="ChatAppLayer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
     <ClCompile Include="EthernetLayer.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FileLayer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="NILayer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ipc2023Dlg.cpp">
-      <Filter>소스 파일</Filter>
-    </ClCompile>
-    <ClCompile Include="FileAppLayer.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="ARPLayer.cpp">

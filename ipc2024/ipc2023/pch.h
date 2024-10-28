@@ -11,14 +11,15 @@
 #include "framework.h"
 #include "BaseLayer.h"
 #include "LayerManager.h"
-#include "ChatAppLayer.h"
+//#include "ChatAppLayer.h"
 #include "EthernetLayer.h"
-#include "FileLayer.h"
+//#include "FileLayer.h"
 #include "NILayer.h"
-#include "FileAppLayer.h"
+//#include "FileAppLayer.h"
 #include "ARPLayer.h"
 #include "ARPCacheEntry.h"
 #include "ARPCacheTable.h"
 #include "TimeoutObserver.h"
+#include "ipc2023Dlg.h"
 
 #endif //PCH_H

@@ -54,8 +54,6 @@ Cipc2023Dlg::Cipc2023Dlg(CWnd* pParent /*=nullptr*/) // Cipc2023Dlg의 생성자
 	: CDialogEx(IDD_IPC2023_DIALOG, pParent)
 	, CBaseLayer("ChatDlg") // CBaseLayer의 생성자를 호출하여 ChatDlg라는 레이어를 생성한다.
 	, m_bSendReady(FALSE)
-	, m_nAckReady(-1)
-	, m_stMessage(_T(""))
 	, m_index(0)
 {
 	//대화상자 멤버 변수 초기화
@@ -66,64 +64,44 @@ Cipc2023Dlg::Cipc2023Dlg(CWnd* pParent /*=nullptr*/) // Cipc2023Dlg의 생성자
 
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
-	m_unSrcAddr = _T("");
-	m_unDstAddr = _T("");
-	m_stFilePath = _T("");
+	//m_unSrcAddr = _T("");
+	//m_unDstAddr = _T("");
+	//m_stFilePath = _T("");
 
 	//Protocol Layer Setting
-	m_LayerMgr.AddLayer(new CChatAppLayer("ChatApp"));
 	m_LayerMgr.AddLayer(new CEthernetLayer("Ethernet"));
 	m_LayerMgr.AddLayer(new CNILayer("NI"));
-	m_LayerMgr.AddLayer(new CFileAppLayer("FileApp"));
+	m_LayerMgr.AddLayer(new CARPLayer("ARP"));
 	m_LayerMgr.AddLayer(this);
 
 	// 레이어를 연결한다. (레이어 생성)
-	m_LayerMgr.ConnectLayers("NI ( *Ethernet ( *ChatApp ( *ChatDlg ) *FileApp (*ChatDlg) ) ) )");
+	m_LayerMgr.ConnectLayers("NI ( *Ethernet ( *ARP ( *ChatDlg ) ) )");
 
-	m_ChatApp = (CChatAppLayer*)m_LayerMgr.GetLayer("ChatApp");
 	m_Eth = (CEthernetLayer*)m_LayerMgr.GetLayer("Ethernet");
 	m_NI = (CNILayer*)m_LayerMgr.GetLayer("NI");
-	m_File = (CFileAppLayer*)m_LayerMgr.GetLayer("FileApp");
-	//Protocol Layer Setting
+	m_ARP = (CARPLayer*)m_LayerMgr.GetLayer("ARP");
 }
 
 void Cipc2023Dlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_COMBO4, m_comboBox);
-	DDX_Text(pDX, IDC_EDIT_SRC, m_unSrcAddr); // IDC_EDIT_SRC와 IDC_EDIT1는 같다.
-	DDX_Text(pDX, IDC_EDIT_DST, m_unDstAddr); // IDC_EDIT_DST와 IDC_EDIT2는 같다.
-	DDX_Text(pDX, IDC_EDIT_MSG, m_stMessage); // IDC_EDIT_MSG와 IDC_EDIT3는 같다. 메시지 입력창
-	DDX_Text(pDX, IDC_EDIT_FILE, m_stFilePath); // 파일 경로 띄우기
-	DDX_Control(pDX, IDC_LIST_CHAT, m_ListChat); // IDC_LIST_CHAT와 IDC_LIST1는 같다. 메시지 올라오는 창
-	DDX_Control(pDX, IDC_PROGRESS, m_progressCtrl);
+	DDX_Control(pDX, IDC_COMBO, m_comboBox);
+	DDX_Text(pDX, IDC_EDIT_SRC, m_unSrcMac); // IDC_EDIT_SRC와 IDC_EDIT1는 같다.
+	DDX_Control(pDX, IDC_LIST_CTR, m_ListCtrl);
+	DDX_Control(pDX, IDC_IP_SOURCE, m_ipSource);
+	DDX_Control(pDX, IDC_IP_TARGET, m_ipTarget);
 }
-
-// 레지스트리에 등록하기 위한 변수
-UINT nRegSendMsg;
-UINT nRegAckMsg;
-// 레지스트리에 등록하기 위한 변수
-
 
 BEGIN_MESSAGE_MAP(Cipc2023Dlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_BUTTON_ADDR, &Cipc2023Dlg::OnBnClickedButtonAddr)
-	ON_BN_CLICKED(IDC_BUTTON_SEND, &Cipc2023Dlg::OnBnClickedButtonSend)
-	ON_WM_TIMER()
-
-	ON_REGISTERED_MESSAGE(nRegSendMsg, OnRegSendMsg)
-	//////////////////////// fill the blank ///////////////////////////////
-		// Ack 레지스터 등록
-	ON_REGISTERED_MESSAGE(nRegAckMsg, OnRegAckMsg)
-	///////////////////////////////////////////////////////////////////////
-
-
-	ON_BN_CLICKED(IDC_CHECK_TOALL, &Cipc2023Dlg::OnBnClickedCheckToall)
-	ON_CBN_SELCHANGE(IDC_COMBO4, &Cipc2023Dlg::OnCbnSelchangeCombo4)
-	ON_BN_CLICKED(IDC_BUTTON2, &Cipc2023Dlg::OnBnClickedButton2)
-	ON_BN_CLICKED(IDC_BUTTON1, &Cipc2023Dlg::OnBnClickedButton1)
+	ON_CBN_SELCHANGE(IDC_COMBO, &Cipc2023Dlg::OnCbnSelchangeCombo)
+	ON_BN_CLICKED(IDC_BUTTON_DELETE, &Cipc2023Dlg::OnBnClickedButtonDelete)
+	ON_BN_CLICKED(IDC_BUTTON_DELETE_ALL, &Cipc2023Dlg::OnBnClickedButtonDeleteAll)
+	ON_BN_CLICKED(IDC_BUTTON_IP_SEND, &Cipc2023Dlg::OnBnClickedButtonIpSend)
+	ON_BN_CLICKED(IDC_BUTTON_SELECT, &Cipc2023Dlg::OnBnClickedButtonSelect)
+	ON_BN_CLICKED(IDC_ARP_TABLE, &Cipc2023Dlg::OnBnClickedArpTable)
 END_MESSAGE_MAP()
 
 
@@ -158,16 +136,19 @@ BOOL Cipc2023Dlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 큰 아이콘을 설정합니다.
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
-	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	UpdateData(FALSE);
-	SetRegstryMessage();
+	//SetRegstryMessage();
 	SetDlgState(IPC_INITIALIZING);
 	SetDlgState(IPC_COMBO_SET);
 
-	m_File->SetProgressBar(&m_progressCtrl);
+	// ListCtrl에 제목 추가
+	CRect rt;
+	m_ListCtrl.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+	m_ListCtrl.InsertColumn(0, _T("IP Address"), LVCFMT_LEFT, rt.Width()+183);
+	m_ListCtrl.InsertColumn(1, _T("Ethernet Address"), LVCFMT_LEFT, rt.Width()+220);
+	m_ListCtrl.InsertColumn(2, _T("Status"), LVCFMT_LEFT, rt.Width()+150);
 
-	// 파일 전송 버튼 비활성화
-	GetDlgItem(IDC_BUTTON1)->EnableWindow(FALSE);
+	GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(FALSE);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -221,85 +202,44 @@ HCURSOR Cipc2023Dlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
-void Cipc2023Dlg::OnBnClickedButtonSend()
-{
-	UpdateData(TRUE); // 대화상자에 입력된 값들을 해당되는 변수에 저장한다.(IDC_EDIT_MSG에 입력된 내용을 m_stMessage에 저장)
-
-	if (!m_stMessage.IsEmpty())
-	{
-		SetTimer(1, 2000, NULL); // 타임아웃 타이머를 2초로 설정한다.
-		m_nAckReady = 0;
-
-		SendData();
-		m_stMessage = ""; // m_stMessage를 빈 문자열로 초기화한다.
-
-		(CEdit*)GetDlgItem(IDC_EDIT3)->SetFocus(); // IDC_EDIT_MSG(=IDC_EDIT3)으로 setFocus
-
-		//////////////////////// fill the blank ///////////////////////////////
-				// Send 신호를 브로드캐스트로 알림
-		//::SendMessage(HWND_BROADCAST, nRegSendMsg, 0, 0);
-		///////////////////////////////////////////////////////////////////////
-	}
-
-	UpdateData(FALSE); // 변수들에 있는 값을 연결된 대화상자의 요소에 대입한다.(m_stMessage의 빈 문자열을 IDC_EDIT_MSG에 대입)
-}
-
-void Cipc2023Dlg::SetRegstryMessage()
-{
-	nRegSendMsg = RegisterWindowMessage(_T("Send IPC Message"));
-	//////////////////////// fill the blank ///////////////////////////////
-		// Ack 레지스트리의 메시지를 설정
-	nRegAckMsg = RegisterWindowMessage(_T("Ack IPC Message"));
-	///////////////////////////////////////////////////////////////////////
-}
-
-void Cipc2023Dlg::SendData()
-{
-	CString MsgHeader;
-	if (m_unDstAddr == (unsigned int)0xff) // Destination 주소가 Broadcast인 경우
-		MsgHeader.Format(_T("[%d:BROADCAST] "), m_unSrcAddr); // [SrcAdd:BROADCAST]를 MsgHeader에 대입
-	else // Destination 주소가 Broadcast가 아닌 경우
-		MsgHeader.Format(_T("[%s | %s] "), (LPCTSTR)m_unSrcAddr, (LPCTSTR)m_unDstAddr); // [SrcAdd:DstAdd]를 MsgHeader에 대입 /@@@/
-
-	m_ListChat.AddString(MsgHeader + m_stMessage);
-	// 위에서 저장한 MsgHeader와 OnBnClickedButtonSend() 함수에서 받은 m_stMessage 값을 합쳐서
-	// m_ListChat에 String 형태로 추가한다.
-
-	// 입력한 메시지를 파일로 저장
-	int nlength = m_stMessage.GetLength(); // nlength에 m_stMessage의 길이, 즉, 입력된 메시지의 길이를 저장한다. 
-	unsigned char* ppayload = new unsigned char[nlength + 1]; // nlenghth + 1의 크기를 가진 ppayload 문자열 생성.
-	memcpy(ppayload, (unsigned char*)(LPCTSTR)m_stMessage, nlength); // m_stMessage->ppayload로 데이터 복사
-	ppayload[nlength] = '\0'; // ppayload의 맨 마지막 index에 \0(null 문자)를 넣어준다.(그래서 nlenghth + 1 해준 것)
-
-
-	// 보낼 data와 메시지 길이를 Send함수로 넘겨준다.
-	//m_ChatApp->Send(ppayload, nlength);
-	m_ChatApp->StartChatSendThread(ppayload, nlength);
-	// ChatApp 레이어에 메시지를 넘겨준다.
-}
-
 BOOL Cipc2023Dlg::Receive(unsigned char* ppayload)
 {
-	CString message = _T("");
-	message.Format(_T("[%s | %s] %s"), (LPCTSTR)m_unDstAddr, (LPCTSTR)m_unSrcAddr, ppayload);
+	unsigned char* mac = ppayload;
+	unsigned char* ip = ppayload + 6;
 
-	m_ListChat.AddString((LPCTSTR)message);
+	// IP, MAC, Status를 CString으로 변환
+	CString strIP, strMAC, strStatus;
+
+	// IP 변환
+	strIP.Format(_T("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+
+	// MAC 변환
+	strMAC.Format(_T("%02X:%02X:%02X:%02X:%02X:%02X"),
+		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+	// Status 변환
+	strStatus.Format(_T("%s"), "complete");
+
+	CString message;
+	message.Format(_T("변경 IP: %s, MAC: %s, Status: %s"), strIP, strMAC, strStatus);
+	AfxMessageBox(message);
+
+	// 리스트 컨트롤 업데이트
+	UpdateListCtrlItem(strIP, strMAC, strStatus);
+
 	return TRUE;
 }
 
 BOOL Cipc2023Dlg::PreTranslateMessage(MSG* pMsg)
 {
-	// TODO: Add your specialized code here and/or call the base class
 	switch (pMsg->message)
 	{
 	case WM_KEYDOWN:
 		switch (pMsg->wParam)
 		{
 		case VK_RETURN:
-			if (::GetDlgCtrlID(::GetFocus()) == IDC_EDIT3)
-				OnBnClickedButtonSend();
+			//if (::GetDlgCtrlID(::GetFocus()) == IDC_EDIT3)
+				//OnBnClickedButtonSend();
 			return FALSE;
 		case VK_ESCAPE: return FALSE;
 		}
@@ -314,26 +254,19 @@ void Cipc2023Dlg::SetDlgState(int state)
 {
 	UpdateData(TRUE);
 
-	CButton* pChkButton = (CButton*)GetDlgItem(IDC_CHECK1);
-
-	CButton* pSendButton = (CButton*)GetDlgItem(bt_send);
-	CButton* pSetAddrButton = (CButton*)GetDlgItem(bt_setting);
-	CEdit* pMsgEdit = (CEdit*)GetDlgItem(IDC_EDIT3);
-	CEdit* pSrcEdit = (CEdit*)GetDlgItem(IDC_EDIT1);
-	CEdit* pDstEdit = (CEdit*)GetDlgItem(IDC_EDIT2);
-	CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_COMBO4);
+	CComboBox* pComboBox = (CComboBox*)GetDlgItem(IDC_COMBO);
 
 	switch (state)
 	{
 	case IPC_INITIALIZING:
-		pSendButton->EnableWindow(FALSE);
-		pMsgEdit->EnableWindow(FALSE);
-		m_ListChat.EnableWindow(FALSE);
+		//pSendButton->EnableWindow(FALSE);
+		//pMsgEdit->EnableWindow(FALSE);
+		//m_ListChat.EnableWindow(FALSE);
 		break;
 	case IPC_READYTOSEND:
-		pSendButton->EnableWindow(TRUE);
-		pMsgEdit->EnableWindow(TRUE);
-		m_ListChat.EnableWindow(TRUE);
+		//pSendButton->EnableWindow(TRUE);
+		//pMsgEdit->EnableWindow(TRUE);
+		//m_ListChat.EnableWindow(TRUE);
 		break;
 	case IPC_WAITFORACK:	break;
 	case IPC_ERROR:		break;
@@ -346,17 +279,15 @@ void Cipc2023Dlg::SetDlgState(int state)
 			pDstEdit->EnableWindow(FALSE);
 			break;*/
 	case IPC_ADDR_SET:
-		pSetAddrButton->SetWindowText(_T("재설정(&R)"));
-		pSrcEdit->EnableWindow(FALSE);
-		pDstEdit->EnableWindow(FALSE);
-		pChkButton->EnableWindow(FALSE);
+		//pSetAddrButton->SetWindowText(_T("재설정(&R)"));
+		//pSrcEdit->EnableWindow(FALSE);
+		//pDstEdit->EnableWindow(FALSE);
+		//pChkButton->EnableWindow(FALSE);
 		break;
 	case IPC_ADDR_RESET:
-		pSetAddrButton->SetWindowText(_T("설정(&O)"));
-		pSrcEdit->EnableWindow(TRUE);
-		if (!pChkButton->GetCheck())
-			pDstEdit->EnableWindow(TRUE);
-		pChkButton->EnableWindow(TRUE);
+		//pSetAddrButton->SetWindowText(_T("설정(&O)"));
+		//pSrcEdit->EnableWindow(TRUE);
+		//pChkButton->EnableWindow(TRUE);
 		break;
 	case IPC_COMBO_SET:
 		for (int i = 0; i < NI_COUNT_NIC; ++i) {
@@ -376,43 +307,6 @@ void Cipc2023Dlg::EndofProcess()
 	m_LayerMgr.DeAllocLayer();
 }
 
-// Send메시지 레지스트리가 켜졌을 때
-LRESULT Cipc2023Dlg::OnRegSendMsg(WPARAM wParam, LPARAM lParam)
-{
-	//////////////////////// fill the blank ///////////////////////////////
-	if (m_nAckReady) {
-		// send하지 않았으면 TRUE인 상태(OnBnClickedButtonSend 함수 내 if문이 수행되었다면 m_nAckReady = 0이 수행되었다.)
-		// File 레이어에서 상대방이 전송한 메시지가 담긴 파일을 가져옴
-		if (m_LayerMgr.GetLayer("File")->Receive())
-		{
-			// 메시지를 받았다면 Ack 신호를 브로드캐스트로 날린다.
-			::SendMessage(HWND_BROADCAST, nRegAckMsg, 0, 0);
-		}
-	}
-	///////////////////////////////////////////////////////////////////////
-	return 0;
-}
-
-LRESULT Cipc2023Dlg::OnRegAckMsg(WPARAM wParam, LPARAM lParam)
-{
-	if (!m_nAckReady) { // Ack 신호를 받으면 타이머를 멈춘다.
-		m_nAckReady = -1;
-		KillTimer(1);
-	}
-
-	return 0;
-}
-
-//void Cipc2023Dlg::OnTimer(UINT nIDEvent)
-//{
-//	// TODO: Add your message handler code here and/or call default
-//	m_ListChat.AddString(_T(">> The last message was time-out.."));
-//	m_nAckReady = -1;
-//	KillTimer(1);
-//
-//	CDialog::OnTimer(nIDEvent);
-//}
-
 void Cipc2023Dlg::Str2UCHAR(CString& src, UCHAR* dst)
 {
 	sscanf_s(src, "%02x:%02x:%02x:%02x:%02x:%02x",
@@ -427,90 +321,197 @@ void Cipc2023Dlg::UCHAR2Str(UCHAR* src, CString& dst)
 		src[3], src[4], src[5]);
 }
 
-
-void Cipc2023Dlg::OnBnClickedButtonAddr()
-{
-	UpdateData(TRUE);
-
-	if (m_unDstAddr.IsEmpty() || // SrcAdd나 DstAdd 둘 중 하나라도 설정되어있지 않다면 오류 메시지를 띄운다.
-		m_unSrcAddr.IsEmpty())
-	{
-		AfxMessageBox(_T("주소를 설정 오류발생",
-			"경고"),
-			MB_OK | MB_ICONSTOP);
-
-		return;
-	}
-
-	if (m_bSendReady) { // 대화상자가 생성될 때, m_bSendReady는 FALSE로 초기화된다.
-		SetDlgState(IPC_ADDR_RESET);
-		SetDlgState(IPC_INITIALIZING);
-		// 주소 재설정 시 파일 전송 버튼 비활성화
-		GetDlgItem(IDC_BUTTON1)->EnableWindow(FALSE);
-	}
-	else {
-		Str2UCHAR(m_unSrcAddr, m_ucSrcAddrArray);
-		Str2UCHAR(m_unDstAddr, m_ucDstAddrArray);
-		m_Eth->SetSourceAddress(m_ucSrcAddrArray); // ChatApp 레이어의 헤더 정보에 SrcAdd 값을 저장
-		m_Eth->SetDestinAddress(m_ucDstAddrArray); // ChatApp 레이어의 헤더 정보에 DstAdd 값을 저장
-
-		m_NI->PacketStartDriver();
-
-		SetDlgState(IPC_ADDR_SET);
-		SetDlgState(IPC_READYTOSEND);
-		// 주소 설정 완료 시 파일 전송 버튼 활성화
-		GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
-	}
-
-	m_bSendReady = !m_bSendReady; // 초기 m_bSendReady 값을 반전시킨다. 
-	// 홀수번 작동할 때, Address 값 설정
-	// 짝수번 작동할 때, Dlg 초기화(재설정)
-}
-
-void Cipc2023Dlg::OnBnClickedCheckToall()
-{
-	CButton* pChkButton = (CButton*)GetDlgItem(IDC_CHECK_TOALL);
-
-	if (pChkButton->GetCheck()) {
-		SetDlgState(IPC_BROADCASTMODE); // m_unDstAddr = 0xff로 설정
-	}
-	else {
-		SetDlgState(IPC_UNICASTMODE); // m_unDstAddr = 0x0로 설정
-	}
-}
-
-void Cipc2023Dlg::OnCbnSelchangeCombo4()
+void Cipc2023Dlg::OnCbnSelchangeCombo()
 {
 	UpdateData(TRUE);
 	m_index = m_comboBox.GetCurSel();
 	m_NI->SetAdapterIndex(m_index);
 	pcap_if_t* selectedAdapter = m_NI->GetAdapterObject(m_index);
 	CString selectedAdapterAdress = m_NI->GetNICardAddress(selectedAdapter->name);
-	m_unSrcAddr = selectedAdapterAdress;
+	m_unSrcMac = selectedAdapterAdress;
 	CEdit* pSrcEdit = (CEdit*)GetDlgItem(IDC_EDIT_SRC);
-	pSrcEdit->SetWindowTextA(m_unSrcAddr);
+	pSrcEdit->SetWindowTextA(m_unSrcMac);
 	UpdateData(FALSE);
 }
 
-void Cipc2023Dlg::OnBnClickedButton2()
-{
-	CFileDialog fileDlg(TRUE);
-	if (fileDlg.DoModal() == IDOK) {
-		m_stFilePath = fileDlg.GetPathName();
-		CEdit* pEditFile = (CEdit*)GetDlgItem(IDC_EDIT_FILE);
-		pEditFile->SetWindowText(m_stFilePath);
-		m_File->SetFilePath(m_stFilePath); // 파일경로 FileApp의 FilePath에 CSTRING 타입으로 저장
 
-		// 파일 경로와 주소가 모두 설정되었는지 확인
-		if (!m_stFilePath.IsEmpty() && !m_unSrcAddr.IsEmpty() && !m_unDstAddr.IsEmpty() && m_bSendReady)
+void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
+{
+	POSITION pos;
+	pos = m_ListCtrl.GetFirstSelectedItemPosition();
+	int idx = m_ListCtrl.GetNextSelectedItem(pos);
+
+	if (idx != -1)
+	{
+		CString strValue = m_ListCtrl.GetItemText(idx, 0);
+
+		unsigned char value[4];
+		int ip1, ip2, ip3, ip4;
+		_stscanf_s(strValue, _T("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+		value[0] = static_cast<unsigned char>(ip1);
+		value[1] = static_cast<unsigned char>(ip2);
+		value[2] = static_cast<unsigned char>(ip3);
+		value[3] = static_cast<unsigned char>(ip4);
+		m_ListCtrl.DeleteItem(idx);
+
+		// ARP 캐시 테이블에 있는 엔트리 제거하기
+		m_ARP->onEntryTimeout(value);
+		//m_ARP->printCache();
+	}
+}
+
+
+
+void Cipc2023Dlg::OnBnClickedButtonDeleteAll() // 전체 삭제 버튼
+{
+	m_ListCtrl.DeleteAllItems();
+
+	// ARP 캐시 테이블 엔트리 전체 삭제
+	m_ARP->clearAll();
+	//m_ARP->printCache();
+}
+
+
+void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
+{
+	// 입력된 IP 주소 가져오기
+	if (!m_ipTarget.IsBlank()) {
+		BYTE b1, b2, b3, b4;
+		m_ipTarget.GetAddress(b1, b2, b3, b4);
+
+		// unsigned char로 변환
+		unsigned char targetIp[4];
+		targetIp[0] = b1;
+		targetIp[1] = b2;
+		targetIp[2] = b3;
+		targetIp[3] = b4;
+
+		CString tarIP;
+		tarIP.Format(_T("%d.%d.%d.%d"), b1, b2, b3, b4);
+
+		// 중복된 IP가 있는지 확인
+		int itemCount = m_ListCtrl.GetItemCount();
+		for (int i = 0; i < itemCount; ++i) {
+			CString existingIP = m_ListCtrl.GetItemText(i, 0);
+			if (existingIP == tarIP) {
+				AfxMessageBox(_T("이미 존재하는 IP 주소입니다."));
+				return;
+			}
+		}
+
+		// Mac 초기값 설정
+		CString initMac;
+		initMac.Format(_T("00:00:00:00:00:00"));
+
+		CString status;
+		status.Format(_T("incomplete"));
+
+		// ListCtrl에 추가
+		int num = m_ListCtrl.GetItemCount();
+
+		// 테이블에 IP 추가
+		m_ListCtrl.InsertItem(num, tarIP);
+
+		// ARP에 Target IP 전송
+		m_ARP->SetTargetInfo(targetIp);
+
+		// IP 입력창 초기화
+		m_ipTarget.ClearAddress();
+
+		// 테이블에 MAC 추가
+		m_ListCtrl.SetItem(num, 1, LVIF_TEXT, initMac, 0, 0, 0, 0);
+
+		// 테이블에 Status 추가
+		m_ListCtrl.SetItem(num, 2, LVIF_TEXT, status, 0, 0, 0, 0);
+
+		// ARP 레이어 패킷 1번 전송시작
+		m_ARP->createRequestPacket();
+
+		// ARP 캐시 테이블 출력
+		//m_ARP->printCache();
+
+		// ARP 캐시 테이블 업데이트 - 여기서 할지 arp 레이어에서 패킷 전송하고 할지
+
+	}
+	else {
+		AfxMessageBox(_T("IP address를 입력하세요"));
+	}
+}
+
+
+void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
+{
+	if (m_unSrcMac.IsEmpty() || m_ipSource.IsBlank()) {
+		AfxMessageBox(_T("주소 설정 오류", "경고"), MB_OK | MB_ICONSTOP);
+	}
+	else {
+		m_NI->PacketStartDriver();
+
+		BYTE b1, b2, b3, b4;
+		m_ipSource.GetAddress(b1, b2, b3, b4);
+
+		unsigned char SourceIp[4];
+		SourceIp[0] = b1;
+		SourceIp[1] = b2;
+		SourceIp[2] = b3;
+		SourceIp[3] = b4;
+
+		Str2UCHAR(m_unSrcMac, m_ucSrcAddrArray);
+
+		// ARP에 Source IP, Source Mac 전송
+		m_ARP->SetSenderInfo(m_ucSrcAddrArray, SourceIp);
+
+		// Ethernet 헤더에 Source Mac 설정
+		m_Eth->SetSourceAddress(m_ucSrcAddrArray);
+
+		// Select 버튼 비활성화
+		GetDlgItem(IDC_BUTTON_SELECT)->EnableWindow(FALSE);
+
+		// Send 버튼 활성화
+		GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(TRUE);
+	}
+}
+
+void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정 함수
+{
+	int itemCount = m_ListCtrl.GetItemCount();
+	for (int i = 0; i <= itemCount; ++i)
+	{
+		CString column1Value = m_ListCtrl.GetItemText(i, 0);
+
+		if (column1Value == ip)
 		{
-			GetDlgItem(IDC_BUTTON1)->EnableWindow(TRUE);
+			m_ListCtrl.SetItemText(i, 1, mac);
+			m_ListCtrl.SetItemText(i, 2, status);
+			break;
+		}
+		else {
+			int num = m_ListCtrl.GetItemCount();
+			m_ListCtrl.InsertItem(num, ip);
+			m_ListCtrl.SetItem(num, 1, LVIF_TEXT, mac, 0, 0, 0, 0);
+			m_ListCtrl.SetItem(num, 2, LVIF_TEXT, status, 0, 0, 0, 0);
 		}
 	}
 }
 
-// 파일 보내기 버튼
-void Cipc2023Dlg::OnBnClickedButton1()
+void Cipc2023Dlg::OnBnClickedArpTable()
 {
-	m_File->StartSendThread();
+	m_ARP->printCache();
+}
+
+void Cipc2023Dlg::TimeoutEntryDelete(const unsigned char* ip)
+{
+	int Index = 0;
+	int itemCount = m_ListCtrl.GetItemCount(); // 전체 항목 개수
+	CString tarIP;
+	tarIP.Format(_T("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
+
+	for (int i = 0; i < itemCount; ++i) {
+		CString itemText = m_ListCtrl.GetItemText(i, 0); // 특정 열의 텍스트 가져오기
+		if (itemText.Find(tarIP) != -1) { // searchText가 포함된 항목을 찾으면
+			Index = i; // 해당 인덱스 반환
+			break;
+		}
+	}
+	m_ListCtrl.DeleteItem(Index);
 }
