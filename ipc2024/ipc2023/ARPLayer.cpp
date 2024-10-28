@@ -119,7 +119,7 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
 
     //받은 ARP OP code가 1 - ARP 응답 패킷 생성 함수 호출
     if (data->op_code == 1) {
-        // sender의 mac주소와 ip주소 전달
+        // 타겟 ip 주소가 나의 ip 주소와 같은지
         if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
             addOrPresent(data->source_ip, data->source_mac, true, true); //
             
