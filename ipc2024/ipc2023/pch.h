@@ -21,5 +21,6 @@
 #include "ARPCacheTable.h"
 #include "TimeoutObserver.h"
 #include "ipc2023Dlg.h"
+#include "ARPProxyTable.h"
 
 #endif //PCH_H

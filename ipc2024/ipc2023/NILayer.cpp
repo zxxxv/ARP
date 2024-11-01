@@ -145,7 +145,9 @@ pcap_sendpacket() 함수를 호출하여 패킷을 전송하며,
 BOOL CNILayer::Send(unsigned char* payload_data, int payload_data_len)
 {
     if (pcap_sendpacket(m_AdapterObject, payload_data, payload_data_len)) {
+        char *err = pcap_geterr(m_AdapterObject);
         AfxMessageBox(_T("Packet Send Failed"));
+        AfxMessageBox(_T(err));
         return FALSE;
     }
     return TRUE;

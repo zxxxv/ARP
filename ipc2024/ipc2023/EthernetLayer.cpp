@@ -67,7 +67,7 @@ BOOL CEthernetLayer::Receive(unsigned char* payload_data)
     BOOL bSuccess = FALSE;
     unsigned char broadcastAddr[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 
-    // 목적지 주소가 나의 주소와 일치하는지, memcmp 동일한 값이면 0 반환 + 브로드캐스트인지
+    // 목적지 주소가 나의 주소가 아니면서, 브로드 캐스트가 아니면 무시
     if (memcmp(pFrame->enet_dstaddr, m_sHeader.enet_srcaddr, 6) != 0 &&
         memcmp(pFrame->enet_dstaddr, broadcastAddr, 6) != 0)
         return FALSE;
@@ -75,7 +75,7 @@ BOOL CEthernetLayer::Receive(unsigned char* payload_data)
     if (memcmp(pFrame->enet_srcaddr, m_sHeader.enet_srcaddr, 6) == 0)
         return FALSE;
 
-    if (pFrame->enet_type == 0x8060)
+    if (pFrame->enet_type == 0x0806)
         bSuccess = mp_aUpperLayer[0]->Receive((unsigned char*)pFrame->enet_data);
 
     return bSuccess;

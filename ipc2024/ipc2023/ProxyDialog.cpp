@@ -36,7 +36,6 @@ END_MESSAGE_MAP()
 
 // ProxyDialog 메시지 처리기
 
-
 void ProxyDialog::OnBnClickedOk()
 {
 	CDialogEx::OnOK();

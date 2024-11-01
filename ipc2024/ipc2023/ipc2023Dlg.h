@@ -83,6 +83,8 @@ private:
 	CEthernetLayer* m_Eth;
 	CARPLayer* m_ARP;
 
+	//CString Cipc2023Dlg::binaryToString(const unsigned char* ip);
+
 public:
 	CComboBox m_comboBox;
 	CString m_unSrcMac;

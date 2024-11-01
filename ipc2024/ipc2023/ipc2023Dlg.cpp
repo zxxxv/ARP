@@ -327,7 +327,6 @@ void Cipc2023Dlg::OnCbnSelchangeCombo()
 	UpdateData(FALSE);
 }
 
-
 void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
 {
 	POSITION pos;
@@ -348,7 +347,9 @@ void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
 
 		m_ListCtrl.DeleteItem(idx);
 		// ARP 캐시 테이블에 있는 엔트리 제거하기
-		m_ARP->onEntryTimeout(value);
+		//m_ARP->onEntryTimeout(value);
+		m_ARP->removeEntry(value);
+		
 		//m_ARP->printCache();
 	}
 }
@@ -390,7 +391,7 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 				return;
 			}
 		}
-
+		
 		// Mac 초기값 설정
 		CString initMac;
 		initMac.Format(_T("00:00:00:00:00:00"));
@@ -519,7 +520,7 @@ void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
 		
 		// 값 프록시 테이블에 추가
 		// 리스트 형식으로 dlg에서 프록시 테이블 관리
-	}
+	}	//
 }
 
 
@@ -552,6 +553,6 @@ void Cipc2023Dlg::OnBnClickedButtonGarpSend() //
 	CString strMac;
 	m_garp_mac.GetWindowText(strMac);
 	Str2UCHAR(strMac, m_ucGaprSrcAddrArray);
-	m_ARP->createGarpPacket(m_ucGaprSrcAddrArray);
 	m_Eth->SetSourceAddress(m_ucGaprSrcAddrArray);
+	m_ARP->createGarpPacket(m_ucGaprSrcAddrArray);
 }

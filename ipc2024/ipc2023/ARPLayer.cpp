@@ -19,7 +19,6 @@ CARPLayer::~CARPLayer()
 
 }
 
-
 void CARPLayer::ResetHeader()
 {
     // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
@@ -68,7 +67,7 @@ void CARPLayer::createRequestPacket() {
         createPacket(1);
     }
 }
-
+//
 void CARPLayer::createGarpPacket(unsigned char* mac) {    
     // ARP Header
     // Source IP		: Sender's
@@ -80,10 +79,13 @@ void CARPLayer::createGarpPacket(unsigned char* mac) {
     // Source Mac		: Sender's 변경된 Mac
     // Destination Mac	: Broadcast
 
+    const unsigned char broadcast_mac[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+
     ResetHeader();
     memcpy(arpHeader.source_mac, mac, 6);
     memcpy(arpHeader.source_ip, sender_ip, 4);
     memcpy(arpHeader.target_ip, sender_ip, 4);
+    memcpy(arpHeader.target_mac, broadcast_mac, 6);
 
     createPacket(1);
 }
@@ -137,8 +139,6 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     //받은 ARP OP code가 1 - ARP 응답 패킷 생성 함수 호출
     if (data->op_code == 1) {
 
-        // data의 source IP 주소가 나와 같다면 버림 ??
-
         addOrPresent(data->source_ip, data->source_mac, true, true); // 이미 존재하면 덮어씌우는 것으로 바꾸기
         // dlg 업데이트 하기
         unsigned char buffer[10];
@@ -150,6 +150,10 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
         if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
             createReplyPacket(payload_data);
         }
+
+        /*if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0 || proxy table에 있음?) {
+            createReplyPacket(payload_data);
+        }*/
     }
     //받은 ARP OP code가 2 - ARP cashe table 업데이트 
     else if (data->op_code == 2) {

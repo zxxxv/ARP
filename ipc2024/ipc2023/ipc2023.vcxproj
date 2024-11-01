@@ -191,6 +191,7 @@
     <ClInclude Include="ARPCacheEntry.h" />
     <ClInclude Include="ARPCacheTable.h" />
     <ClInclude Include="ARPLayer.h" />
+    <ClInclude Include="ARPProxyTable.h" />
     <ClInclude Include="BaseLayer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="ipc2023.h" />
@@ -209,6 +210,7 @@
     <ClCompile Include="ARPCacheEntry.cpp" />
     <ClCompile Include="ARPCacheTable.cpp" />
     <ClCompile Include="ARPLayer.cpp" />
+    <ClCompile Include="ARPProxyTable.cpp" />
     <ClCompile Include="BaseLayer.cpp" />
     <ClCompile Include="EthernetLayer.cpp" />
     <ClCompile Include="ipc2023.cpp" />

@@ -63,7 +63,7 @@ private:
     void ResetHeader();
 
 #define ARP_HEADER_SIZE 28
-#define ARP_LAYER_IDENTIFIER 0x8060
+#define ARP_LAYER_IDENTIFIER 0x0806
 
 protected:
     ARP_HEADER   arpHeader;   /// °´Ã¼ ARP ÇØ´õ
