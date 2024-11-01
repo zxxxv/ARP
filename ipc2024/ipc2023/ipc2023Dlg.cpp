@@ -6,6 +6,7 @@
 #include "ipc2023.h"
 #include "ipc2023Dlg.h"
 #include "afxdialogex.h"
+#include "ProxyDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -90,6 +91,8 @@ void Cipc2023Dlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_LIST_CTR, m_ListCtrl);
 	DDX_Control(pDX, IDC_IP_SOURCE, m_ipSource);
 	DDX_Control(pDX, IDC_IP_TARGET, m_ipTarget);
+	DDX_Control(pDX, IDC_LIST_CTR_P, m_ListCtrlP);
+	DDX_Control(pDX, IDC_GARP_MAC, m_garp_mac);
 }
 
 BEGIN_MESSAGE_MAP(Cipc2023Dlg, CDialogEx)
@@ -102,6 +105,9 @@ BEGIN_MESSAGE_MAP(Cipc2023Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_IP_SEND, &Cipc2023Dlg::OnBnClickedButtonIpSend)
 	ON_BN_CLICKED(IDC_BUTTON_SELECT, &Cipc2023Dlg::OnBnClickedButtonSelect)
 	ON_BN_CLICKED(IDC_ARP_TABLE, &Cipc2023Dlg::OnBnClickedArpTable)
+	ON_BN_CLICKED(IDC_PROXY_ADD, &Cipc2023Dlg::OnBnClickedProxyAdd)
+	ON_BN_CLICKED(IDC_PROXY_DELETE, &Cipc2023Dlg::OnBnClickedProxyDelete)
+	ON_BN_CLICKED(IDC_BUTTON_GARP_SEND, &Cipc2023Dlg::OnBnClickedButtonGarpSend)
 END_MESSAGE_MAP()
 
 
@@ -147,6 +153,12 @@ BOOL Cipc2023Dlg::OnInitDialog()
 	m_ListCtrl.InsertColumn(0, _T("IP Address"), LVCFMT_LEFT, rt.Width()+183);
 	m_ListCtrl.InsertColumn(1, _T("Ethernet Address"), LVCFMT_LEFT, rt.Width()+220);
 	m_ListCtrl.InsertColumn(2, _T("Status"), LVCFMT_LEFT, rt.Width()+150);
+
+	CRect rtP;
+	m_ListCtrlP.SetExtendedStyle(LVS_EX_FULLROWSELECT);
+	m_ListCtrlP.InsertColumn(0, _T("Device"), LVCFMT_LEFT, rtP.Width() + 183);
+	m_ListCtrlP.InsertColumn(1, _T("IP Address"), LVCFMT_LEFT, rtP.Width() + 220);
+	m_ListCtrlP.InsertColumn(2, _T("Ethernet Address"), LVCFMT_LEFT, rtP.Width() + 150);
 
 	GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(FALSE);
 
@@ -220,9 +232,9 @@ BOOL Cipc2023Dlg::Receive(unsigned char* ppayload)
 	// Status 변환
 	strStatus.Format(_T("%s"), "complete");
 
-	CString message;
-	message.Format(_T("변경 IP: %s, MAC: %s, Status: %s"), strIP, strMAC, strStatus);
-	AfxMessageBox(message);
+	//CString message;
+	//message.Format(_T("변경 IP: %s, MAC: %s, Status: %s"), strIP, strMAC, strStatus);
+	//AfxMessageBox(message);
 
 	// 리스트 컨트롤 업데이트
 	UpdateListCtrlItem(strIP, strMAC, strStatus);
@@ -270,25 +282,6 @@ void Cipc2023Dlg::SetDlgState(int state)
 		break;
 	case IPC_WAITFORACK:	break;
 	case IPC_ERROR:		break;
-		/*case IPC_UNICASTMODE:
-			m_unDstAddr = 0x0;
-			pDstEdit->EnableWindow(TRUE);
-			break;
-		case IPC_BROADCASTMODE:
-			m_unDstAddr = 0xff;
-			pDstEdit->EnableWindow(FALSE);
-			break;*/
-	case IPC_ADDR_SET:
-		//pSetAddrButton->SetWindowText(_T("재설정(&R)"));
-		//pSrcEdit->EnableWindow(FALSE);
-		//pDstEdit->EnableWindow(FALSE);
-		//pChkButton->EnableWindow(FALSE);
-		break;
-	case IPC_ADDR_RESET:
-		//pSetAddrButton->SetWindowText(_T("설정(&O)"));
-		//pSrcEdit->EnableWindow(TRUE);
-		//pChkButton->EnableWindow(TRUE);
-		break;
 	case IPC_COMBO_SET:
 		for (int i = 0; i < NI_COUNT_NIC; ++i) {
 			pcap_if_t* tempAdater = m_NI->GetAdapterObject(i);
@@ -339,12 +332,12 @@ void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
 {
 	POSITION pos;
 	pos = m_ListCtrl.GetFirstSelectedItemPosition();
+
 	int idx = m_ListCtrl.GetNextSelectedItem(pos);
 
 	if (idx != -1)
-	{
+	{		
 		CString strValue = m_ListCtrl.GetItemText(idx, 0);
-
 		unsigned char value[4];
 		int ip1, ip2, ip3, ip4;
 		_stscanf_s(strValue, _T("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
@@ -352,15 +345,13 @@ void Cipc2023Dlg::OnBnClickedButtonDelete() // 삭제 버튼
 		value[1] = static_cast<unsigned char>(ip2);
 		value[2] = static_cast<unsigned char>(ip3);
 		value[3] = static_cast<unsigned char>(ip4);
-		m_ListCtrl.DeleteItem(idx);
 
+		m_ListCtrl.DeleteItem(idx);
 		// ARP 캐시 테이블에 있는 엔트리 제거하기
 		m_ARP->onEntryTimeout(value);
 		//m_ARP->printCache();
 	}
 }
-
-
 
 void Cipc2023Dlg::OnBnClickedButtonDeleteAll() // 전체 삭제 버튼
 {
@@ -395,6 +386,7 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 			CString existingIP = m_ListCtrl.GetItemText(i, 0);
 			if (existingIP == tarIP) {
 				AfxMessageBox(_T("이미 존재하는 IP 주소입니다."));
+				// UpdateListCtrlItem
 				return;
 			}
 		}
@@ -437,7 +429,6 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 		AfxMessageBox(_T("IP address를 입력하세요"));
 	}
 }
-
 
 void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 {
@@ -514,4 +505,53 @@ void Cipc2023Dlg::TimeoutEntryDelete(const unsigned char* ip)
 		}
 	}
 	m_ListCtrl.DeleteItem(Index);
+}
+
+void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
+{
+	ProxyDialog dlg;
+	if (dlg.DoModal() == IDOK)
+	{
+		// 자식 대화상자에서 데이터를 가져옴
+		//CString strData = dlg.m_strData;
+		// 부모 대화상자의 멤버 변수에 저장하거나 처리
+		//m_strParentData = strData;
+		
+		// 값 프록시 테이블에 추가
+		// 리스트 형식으로 dlg에서 프록시 테이블 관리
+	}
+}
+
+
+void Cipc2023Dlg::OnBnClickedProxyDelete() // 프록시 테이블 삭제
+{
+	POSITION posP;
+	posP = m_ListCtrlP.GetFirstSelectedItemPosition();
+	int idx = m_ListCtrlP.GetNextSelectedItem(posP);
+
+	if (idx != -1)
+	{
+		CString strValue = m_ListCtrlP.GetItemText(idx, 0);
+
+		unsigned char value[4];
+		int ip1, ip2, ip3, ip4;
+		_stscanf_s(strValue, _T("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
+		value[0] = (unsigned char)ip1;
+		value[1] = (unsigned char)ip2;
+		value[2] = (unsigned char)ip3;
+		value[3] = (unsigned char)ip4;
+		m_ListCtrlP.DeleteItem(idx);
+
+		// 프록시 테이블에 있는 엔트리 제거하기
+	}
+}
+
+
+void Cipc2023Dlg::OnBnClickedButtonGarpSend() //
+{
+	CString strMac;
+	m_garp_mac.GetWindowText(strMac);
+	Str2UCHAR(strMac, m_ucGaprSrcAddrArray);
+	m_ARP->createGarpPacket(m_ucGaprSrcAddrArray);
+	m_Eth->SetSourceAddress(m_ucGaprSrcAddrArray);
 }

@@ -64,10 +64,6 @@ private:
 		IPC_READYTOSEND,
 		IPC_WAITFORACK,
 		IPC_ERROR,
-		IPC_BROADCASTMODE,
-		IPC_UNICASTMODE,
-		IPC_ADDR_SET,
-		IPC_ADDR_RESET,
 		IPC_COMBO_SET
 	};
 
@@ -92,6 +88,7 @@ public:
 	CString m_unSrcMac;
 	CString m_unDstMac;
 	UCHAR m_ucSrcAddrArray[6];
+	UCHAR m_ucGaprSrcAddrArray[6];
 	UCHAR m_ucDstAddrArray[6];
 	UCHAR m_unused[100];
 	afx_msg void OnCbnSelchangeCombo(); // 어댑터 선택
@@ -104,4 +101,9 @@ public:
 	CIPAddressCtrl m_ipSource;	// 내 IP 주소
 	CIPAddressCtrl m_ipTarget;	// 상대 IP 주소
 	afx_msg void OnBnClickedArpTable();
+	CListCtrl m_ListCtrlP;		// 프록시 테이블
+	afx_msg void OnBnClickedProxyAdd();
+	afx_msg void OnBnClickedProxyDelete();
+	afx_msg void OnBnClickedButtonGarpSend();
+	CEdit m_garp_mac;			// 변경한 mac 주소
 };

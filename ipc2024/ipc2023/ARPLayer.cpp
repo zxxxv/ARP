@@ -69,6 +69,25 @@ void CARPLayer::createRequestPacket() {
     }
 }
 
+void CARPLayer::createGarpPacket(unsigned char* mac) {    
+    // ARP Header
+    // Source IP		: Sender's
+    // Destination IP	: Sender's
+    // Source Mac		: Sender's 변경된 Mac
+    // Destination Mac	: Broadcast
+
+    // Ethernet
+    // Source Mac		: Sender's 변경된 Mac
+    // Destination Mac	: Broadcast
+
+    ResetHeader();
+    memcpy(arpHeader.source_mac, mac, 6);
+    memcpy(arpHeader.source_ip, sender_ip, 4);
+    memcpy(arpHeader.target_ip, sender_ip, 4);
+
+    createPacket(1);
+}
+
 void CARPLayer::createReplyPacket(unsigned char* payload_data) {
     // 송신측의 맥주소와 IP주소를 타겟으로 바꾸고 송신측엔 나의 정보로 채움
     // target ip 주소가 나인지 확인
@@ -108,10 +127,8 @@ BOOL CARPLayer::Send(unsigned char* ppayload, int nlength)
     else {
         AfxMessageBox(_T("패킷 전송 실패 - ARP Send"));
     }
-
     return success;
 }
-
 
 BOOL CARPLayer::Receive(unsigned char* payload_data)
 {
@@ -119,16 +136,18 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
 
     //받은 ARP OP code가 1 - ARP 응답 패킷 생성 함수 호출
     if (data->op_code == 1) {
+
+        // data의 source IP 주소가 나와 같다면 버림 ??
+
+        addOrPresent(data->source_ip, data->source_mac, true, true); // 이미 존재하면 덮어씌우는 것으로 바꾸기
+        // dlg 업데이트 하기
+        unsigned char buffer[10];
+        memcpy(buffer, data->source_mac, 6);  // source_mac 복사 (6 bytes)
+        memcpy(buffer + 6, data->source_ip, 4);  // source_ip 복사 (4 bytes)
+        mp_aUpperLayer[0]->Receive(buffer);
+
         // 타겟 ip 주소가 나의 ip 주소와 같은지
         if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
-            addOrPresent(data->source_ip, data->source_mac, true, true); //
-            
-            // dlg 업데이트 하기
-            unsigned char buffer[10];
-            memcpy(buffer, data->source_mac, 6);  // source_mac 복사 (6 bytes)
-            memcpy(buffer + 6, data->source_ip, 4);  // source_ip 복사 (4 bytes)
-            mp_aUpperLayer[0]->Receive(buffer);
-
             createReplyPacket(payload_data);
         }
     }
@@ -152,3 +171,7 @@ void CARPLayer::onEntryTimeout(const unsigned char* ip) {
     ((Cipc2023Dlg*)this->GetUpperLayer(0))->TimeoutEntryDelete(ip);
     removeEntry(ip);
 }
+
+// GARP 요청 보내는 기능만 만들면 됨
+// 받을때는 들어오는 대로 항상 mac주소 rewrite 현재 ip 주소만 대조하여 있으면 exist 없으면 update
+// dlg는 받은대로 업데이트
