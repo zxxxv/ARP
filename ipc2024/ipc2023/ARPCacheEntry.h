@@ -55,7 +55,7 @@ public:
     onArpReplyReceived: ARP 응답 패킷 수신시 작동하는 함수(op code == 2)
     */
 
-    bool editMac(unsigned char* mac);
+    bool editMac(const unsigned char* mac);
 
     // Getter 메서드들
     std::string getIP();

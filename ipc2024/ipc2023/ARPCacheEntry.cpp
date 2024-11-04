@@ -94,7 +94,7 @@ void ARPCacheEntry::onArpReplyReceived() {
     SetTimer(m_timerId, 20 * 60 * 1000, nullptr); // 20분(1200초) 타이머 설정, ID 자동 생성
 }
 
-bool ARPCacheEntry::editMac(unsigned char* mac) {
+bool ARPCacheEntry::editMac(const unsigned char* mac) {
     if (sizeof(mac) != 6) return false;
     memcpy(m_mac, mac, 6);
     return true;

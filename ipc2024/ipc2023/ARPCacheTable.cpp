@@ -1,4 +1,3 @@
-// ARPCacheTable.cpp
 #include "pch.h"
 #include "ARPCacheTable.h"
 
@@ -8,9 +7,7 @@ ARPCacheTable::ARPCacheTable() {
 }
 
 ARPCacheTable::~ARPCacheTable() {
-    for (auto& pair : cache) {
-        delete pair.second;
-    }
+    clearAll();  // 모든 캐시 항목을 안전하게 삭제
 }
 
 std::string ARPCacheTable::binaryToString(const unsigned char* ip) {
@@ -24,8 +21,7 @@ bool ARPCacheTable::addOrUpdate(const unsigned char* ip, const unsigned char* ma
     std::string strIP = binaryToString(ip);
     auto it = cache.find(strIP);
     if (it != cache.end()) {
-        AfxMessageBox(_T("exist"));
-        // 수정하는 함수
+        editEntryMacAddress(ip, mac);
         return false;
     }
     else {
@@ -34,20 +30,15 @@ bool ARPCacheTable::addOrUpdate(const unsigned char* ip, const unsigned char* ma
     }
 }
 
-void ARPCacheTable::handleArpReply(const unsigned char* ip) {
+bool ARPCacheTable::editEntryMacAddress(const unsigned char* ip, const unsigned char* mac) {
+    if (!ip || !mac) return false;
     std::string strIP = binaryToString(ip);
     auto it = cache.find(strIP);
     if (it != cache.end()) {
-        it->second->onArpReplyReceived();
+        it->second->editMac(mac);
+        return true;
     }
-}
-
-bool ARPCacheTable::editEntryMacAddress(unsigned char* ip, unsigned char* mac) {
-    if (sizeof(ip) != 4 | sizeof(mac) != 6) false;
-    std::string strIP = binaryToString(ip);
-    auto it = cache.find(strIP);
-    it->second->editMac(mac);
-    return true;
+    return false;
 }
 
 void ARPCacheTable::removeEntry(const unsigned char* ip) {
@@ -61,24 +52,22 @@ void ARPCacheTable::removeEntry(const unsigned char* ip) {
 
 bool ARPCacheTable::clearAll() {
     if (cache.empty()) {
-        return false; // cache가 이미 비어 있는 경우 false 반환
+        return false;
     }
     try {
         for (auto& pair : cache) {
-            delete pair.second;  // ARPCacheEntry 객체의 메모리 해제
+            delete pair.second;
         }
-        cache.clear();  // 맵 초기화
+        cache.clear();
     }
     catch (const std::exception& e) {
-        return false;  // 메모리 접근 실패 시 false 반환
+        return false;
     }
-    cache.clear();
     return true;
 }
 
 void ARPCacheTable::printCache() const {
-    CString accumulatedMessage; // 모든 메시지를 누적할 CString 변수
-
+    CString accumulatedMessage;
     for (const auto& pair : cache) {
         const auto& ip = pair.first;
         const auto& entry = pair.second;
@@ -88,11 +77,8 @@ void ARPCacheTable::printCache() const {
         CString CState(entry->getState().c_str());
 
         CString line;
-        line.Format(_T("IP: %s, MAC: %s, State: %s\r\n"), CIp, CMac, CState); // 각 항목을 한 줄로 포맷
-
-        accumulatedMessage += line; // 누적된 메시지에 추가
+        line.Format(_T("IP: %s, MAC: %s, State: %s\r\n"), CIp, CMac, CState);
+        accumulatedMessage += line;
     }
-
-    // 루프가 끝난 후 한 번의 메시지 박스로 모든 항목을 표시
     AfxMessageBox(accumulatedMessage);
 }
