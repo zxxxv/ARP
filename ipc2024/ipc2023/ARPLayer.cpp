@@ -58,7 +58,7 @@ void CARPLayer::createRequestPacket() {
     // 선택된 IP주소에 해당하는 mac주소가 있으면 전송 X
     // 없으면 브로드캐스트로 전송
     unsigned char defaultMac[6] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-    if (addOrPresent(target_ip, defaultMac, false, false)) {
+    if (addOrUpdate(target_ip, defaultMac, false, false)) {
         ResetHeader();
         memcpy(arpHeader.source_mac, sender_mac, 6);
         memcpy(arpHeader.source_ip, sender_ip, 4);
@@ -122,8 +122,8 @@ BOOL CARPLayer::Send(unsigned char* ppayload, int nlength)
 
     if (success) {
         // target_ip, target_mac, incomplete으로 테이블에 추가
-        //addOrPresent(arpHeader.target_ip, arpHeader.target_mac, false, false);
-        //addOrPresent(arpHeader.target_ip, 0, false, false);
+        //addOrUpdate(arpHeader.target_ip, arpHeader.target_mac, false, false);
+        //addOrUpdate(arpHeader.target_ip, 0, false, false);
         AfxMessageBox(_T("패킷 전송 성공 - ARP Send"));
     }
     else {
@@ -139,7 +139,7 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     //받은 ARP OP code가 1 - ARP 응답 패킷 생성 함수 호출
     if (data->op_code == 1) {
 
-        addOrPresent(data->source_ip, data->source_mac, true, true); // 이미 존재하면 덮어씌우는 것으로 바꾸기
+        addOrUpdate(data->source_ip, data->source_mac, true, true); // 이미 존재하면 덮어씌우는 것으로 바꾸기
         // dlg 업데이트 하기
         unsigned char buffer[10];
         memcpy(buffer, data->source_mac, 6);  // source_mac 복사 (6 bytes)

@@ -20,7 +20,7 @@ std::string ARPCacheTable::binaryToString(const unsigned char* ip) {
         std::to_string(ip[3]);
 }
 
-bool ARPCacheTable::addOrPresent(const unsigned char* ip, const unsigned char* mac, const bool& state, const bool& isPermanent) {
+bool ARPCacheTable::addOrUpdate(const unsigned char* ip, const unsigned char* mac, const bool& state, const bool& isPermanent) {
     std::string strIP = binaryToString(ip);
     auto it = cache.find(strIP);
     if (it != cache.end()) {
@@ -46,7 +46,8 @@ bool ARPCacheTable::editEntryMacAddress(unsigned char* ip, unsigned char* mac) {
     if (sizeof(ip) != 4 | sizeof(mac) != 6) false;
     std::string strIP = binaryToString(ip);
     auto it = cache.find(strIP);
-    it->second->
+    it->second->editMac(mac);
+    return true;
 }
 
 void ARPCacheTable::removeEntry(const unsigned char* ip) {
