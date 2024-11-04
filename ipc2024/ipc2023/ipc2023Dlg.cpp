@@ -158,9 +158,9 @@ BOOL Cipc2023Dlg::OnInitDialog()
 
 	CRect rtP;
 	m_ListCtrlP.SetExtendedStyle(LVS_EX_FULLROWSELECT);
-	m_ListCtrlP.InsertColumn(0, _T("Device"), LVCFMT_LEFT, rtP.Width() + 183);
-	m_ListCtrlP.InsertColumn(1, _T("IP Address"), LVCFMT_LEFT, rtP.Width() + 220);
-	m_ListCtrlP.InsertColumn(2, _T("Ethernet Address"), LVCFMT_LEFT, rtP.Width() + 150);
+	m_ListCtrlP.InsertColumn(0, _T("Device"), LVCFMT_LEFT, rtP.Width() +220);
+	m_ListCtrlP.InsertColumn(1, _T("IP Address"), LVCFMT_LEFT, rtP.Width() + 183);
+	m_ListCtrlP.InsertColumn(2, _T("Ethernet Address"), LVCFMT_LEFT, rtP.Width() + 200);
 
 	GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(FALSE);
 
@@ -530,19 +530,22 @@ void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
 	ProxyDialog dlg(nullptr, m_NI->m_pAdapterList);
 	if (dlg.DoModal() == IDOK)
 	{
-		// 자식 대화상자에서 데이터를 가져옴
-		//CString strData = dlg.m_strData;
-		// 부모 대화상자의 멤버 변수에 저장하거나 처리
-		//m_strParentData = strData;
-		
-		// 값 프록시 테이블에 추가
-		// 리스트 형식으로 dlg에서 프록시 테이블 관리
+		CString ipAddress = dlg.m_strIPAddress;
+		CString macAddress = dlg.m_strMACAddress;
+		CString deviceName = dlg.m_strDeviceName;
 
-		unsigned char ipAddress[4] = { 192, 168, 1, 1 };
-		unsigned char macAddress[6] = { 0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E };
-		CString deviceName = _T("Router");
-		proxyTable.AddEntry(deviceName, ipAddress, macAddress);
-		
+		int nIndex = m_ListCtrlP.InsertItem(m_ListCtrlP.GetItemCount(), deviceName);
+		m_ListCtrlP.SetItemText(nIndex, 1, ipAddress);
+		m_ListCtrlP.SetItemText(nIndex, 2, macAddress);
+
+		unsigned char ipBytes[4] = { 0 };
+		_stscanf_s(ipAddress, _T("%hhu.%hhu.%hhu.%hhu"), &ipBytes[0], &ipBytes[1], &ipBytes[2], &ipBytes[3]);
+
+		unsigned char macBytes[6] = { 0 };
+		_stscanf_s(macAddress, _T("%hhx:%hhx:%hhx:%hhx:%hhx:%hhx"), &macBytes[0], &macBytes[1], &macBytes[2], &macBytes[3], &macBytes[4], &macBytes[5]);
+
+
+		proxyTable.AddEntry(deviceName, ipBytes, macBytes);
 	}
 }
 
@@ -553,26 +556,23 @@ void Cipc2023Dlg::OnBnClickedProxyDelete() // 프록시 테이블 삭제
 	posP = m_ListCtrlP.GetFirstSelectedItemPosition();
 	int idx = m_ListCtrlP.GetNextSelectedItem(posP);
 
-	if (idx != -1)
-	{
-		CString strValue = m_ListCtrlP.GetItemText(idx, 0);
-
+	if (idx != -1) {
+		// 선택된 항목의 IP 주소 문자열 가져오기
+		CString strValue = m_ListCtrlP.GetItemText(idx, 1);
 		unsigned char value[4];
 		int ip1, ip2, ip3, ip4;
 		_stscanf_s(strValue, _T("%d.%d.%d.%d"), &ip1, &ip2, &ip3, &ip4);
-		value[0] = (unsigned char)ip1;
-		value[1] = (unsigned char)ip2;
-		value[2] = (unsigned char)ip3;
-		value[3] = (unsigned char)ip4;
+		value[0] = static_cast<unsigned char>(ip1);
+		value[1] = static_cast<unsigned char>(ip2);
+		value[2] = static_cast<unsigned char>(ip3);
+		value[3] = static_cast<unsigned char>(ip4);
+
+		// 리스트 컨트롤에서 항목 삭제
 		m_ListCtrlP.DeleteItem(idx);
 
 		// 프록시 테이블에 있는 엔트리 제거하기
-		proxyTable.RemoveEntryByIP(value);
+		if (!proxyTable.RemoveEntryByIP(value)) AfxMessageBox(_T("삭제 실패"));
 	}
-
-	unsigned char value1[4] = { 192, 168, 1, 1 };
-	// 프록시 테이블에 있는 엔트리 제거하기
-	proxyTable.RemoveEntryByIP(value1);
 }
 
 void Cipc2023Dlg::OnBnClickedProxyTable()

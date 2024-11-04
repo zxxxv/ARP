@@ -48,74 +48,31 @@ ProxyDialog::~ProxyDialog()
 void ProxyDialog::DoDataExchange(CDataExchange* pDX)
 {
     CDialogEx::DoDataExchange(pDX);
-    DDX_Control(pDX, IDC_COMBOP, m_combop); // IDC_COMBOP과 m_combop 연결
+    //  DDX_Control(pDX, IDC_COMBOP, m_combop); // IDC_COMBOP과 m_combop 연결
+    DDX_Control(pDX, IDC_COMBOP, m_combop);
+    DDX_Control(pDX, IDC_IPADDRESSP, m_ipaddressp);
+    DDX_Control(pDX, IDC_EDITP, m_editp);
 }
 
 BEGIN_MESSAGE_MAP(ProxyDialog, CDialogEx)
     ON_BN_CLICKED(IDOK, &ProxyDialog::OnBnClickedOk)
     ON_BN_CLICKED(IDCANCEL, &ProxyDialog::OnBnClickedCancel)
-    ON_CBN_SELCHANGE(IDC_COMBOP, &ProxyDialog::OnCbnSelchangeCombop)
-    ON_NOTIFY(IPN_FIELDCHANGED, IDC_IPADDRESSP, &ProxyDialog::OnIpnFieldchangedIpaddressp)
-    ON_EN_CHANGE(IDC_EDITP, &ProxyDialog::OnEnChangeEditp)
 END_MESSAGE_MAP()
-
-// ProxyDialog 메시지 처리기
-//void Cipc2023Dlg::SetDlgState(int state)
-//{
-//   UpdateData(TRUE);
-//
-//   CComboBox* pCombop = (CComboBox*)GetDlgItem(IDC_COMBOP);
-//
-//   switch (state)
-//   {
-//   case IPC_INITIALIZING:
-//      //pSendButton->EnableWindow(FALSE);
-//      //pMsgEdit->EnableWindow(FALSE);
-//      //m_ListChat.EnableWindow(FALSE);
-//      break;
-//   case IPC_READYTOSEND:
-//      //pSendButton->EnableWindow(TRUE);
-//      //pMsgEdit->EnableWindow(TRUE);
-//      //m_ListChat.EnableWindow(TRUE);
-//      break;
-//   case IPC_WAITFORACK:   break;
-//   case IPC_ERROR:      break;
-//   case IPC_COMBO_SET:
-//      for (int i = 0; i < NI_COUNT_NIC; ++i) {
-//         pcap_if_t* tempAdater = m_NI->GetAdapterObject(i);
-//         if (!tempAdater) continue;
-//         pCombop->AddString(tempAdater->description);
-//         pCombop->SetCurSel(0);
-//      }
-//   }
-//
-//   UpdateData(FALSE);
-//}
-
 
 void ProxyDialog::OnBnClickedOk()
 {
+    
+    BYTE ipBytes[4];
+    m_ipaddressp.GetAddress(ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
+    m_strIPAddress.Format(_T("%d.%d.%d.%d"), ipBytes[0], ipBytes[1], ipBytes[2], ipBytes[3]);
+
+    m_editp.GetWindowText(m_strMACAddress);
+    m_combop.GetLBText(m_combop.GetCurSel(), m_strDeviceName); // 선택된 장치 이름 가져오기
+
     CDialogEx::OnOK();
 }
 
 void ProxyDialog::OnBnClickedCancel()
 {
     CDialogEx::OnCancel();
-}
-
-void ProxyDialog::OnCbnSelchangeCombop()
-{
-    
-}
-
-void ProxyDialog::OnIpnFieldchangedIpaddressp(NMHDR* pNMHDR, LRESULT* pResult)
-{
-    LPNMIPADDRESS pIPAddr = reinterpret_cast<LPNMIPADDRESS>(pNMHDR);
-    // TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-    *pResult = 0;
-}
-
-void ProxyDialog::OnEnChangeEditp()
-{
-    // TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 }

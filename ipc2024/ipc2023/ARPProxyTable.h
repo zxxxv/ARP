@@ -34,7 +34,7 @@ public:
     const std::map<std::string, ProxyEntry>& GetAllEntries() const;
 
     // 전달한 ip 주소에 해당하는 항목 삭제
-    void ARPProxyTable::RemoveEntryByIP(const unsigned char ipAddress[4]);
+    BOOL ARPProxyTable::RemoveEntryByIP(const unsigned char* ipAddress);
 
     // 모든 항목 메시지 박스로 띄움
     void DisplayAllEntries() const;

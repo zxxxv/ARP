@@ -6,12 +6,6 @@
 #include "NILayer.h"  // CNILayer 포함
 #include "ipc2023Dlg.h"
 
-//#ifdef _DEBUG
-//#undef THIS_FILE
-//static char THIS_FILE[] = __FILE__;
-//#define new DEBUG_NEW
-//#endif
-
 // ProxyDialog 대화 상자
 
 class ProxyDialog : public CDialogEx
@@ -38,23 +32,14 @@ private:
     CString pSrcEdit; // 소스 주소를 저장할 변수
     pcap_if_t** m_pAdapterList;//
 
-    // 상태 설정 함수
-    // void SetDlgState(int state);
-
-    enum {
-        IPC_INITIALIZING,
-        IPC_READYTOSEND,
-        IPC_WAITFORACK,
-        IPC_ERROR,
-        IPC_COMBO_SET
-    };
-
 public:
-    CComboBox m_combop; // 어댑터 선택 콤보 박스
+    CString m_strIPAddress; // IP 주소를 저장할 멤버 변수
+    CString m_strMACAddress; // MAC 주소를 저장할 멤버 변수
+    CString m_strDeviceName; // 장치 이름을 저장할 멤버 변수
     afx_msg void OnBnClickedOk();
     afx_msg void OnBnClickedCancel();
-    afx_msg void OnCbnSelchangeCombop();
-    afx_msg void OnIpnFieldchangedIpaddressp(NMHDR* pNMHDR, LRESULT* pResult);
-    afx_msg void OnEnChangeEditp();
     BOOL OnInitDialog();
+    CComboBox m_combop;
+    CIPAddressCtrl m_ipaddressp;
+    CEdit m_editp;
 };
