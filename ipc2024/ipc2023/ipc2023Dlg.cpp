@@ -542,6 +542,7 @@ void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
 		unsigned char macAddress[6] = { 0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E };
 		CString deviceName = _T("Router");
 		proxyTable.AddEntry(deviceName, ipAddress, macAddress);
+		
 	}
 }
 

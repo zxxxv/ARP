@@ -94,7 +94,8 @@ public:
 	UCHAR m_ucGaprSrcAddrArray[6];
 	UCHAR m_ucDstAddrArray[6];
 	UCHAR m_unused[100];
-	ARPProxyTable proxyTable;
+	//ARPProxyTable proxyTable;
+	ARPProxyTable& proxyTable = ARPProxyTable::GetInstance();
 	afx_msg void OnCbnSelchangeCombo(); // 어댑터 선택
 	int m_index;
 	afx_msg void OnBnClickedButtonDelete();

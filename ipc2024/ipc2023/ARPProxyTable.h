@@ -15,8 +15,11 @@ struct ProxyEntry {
 class ARPProxyTable
 {
 public:
-	ARPProxyTable();
-	~ARPProxyTable();
+
+    static ARPProxyTable& GetInstance() {
+        static ARPProxyTable instance;  // 유일한 인스턴스
+        return instance;
+    }
 
     // 항목 추가
     void AddEntry(const CString& deviceName, const unsigned char ipAddress[4], const unsigned char macAddress[6]);
@@ -37,8 +40,13 @@ public:
     void DisplayAllEntries() const;
 
 private:
-    std::map<std::string, ProxyEntry> m_entries;  // Proxy ARP 테이블을 위한 맵
 
-    // IP 주소를 문자열로 변환하는 함수
-    std::string IpToString(const unsigned char ipAddress[4]) const;
+    ARPProxyTable();
+    ~ARPProxyTable();
+
+    ARPProxyTable(const ARPProxyTable&) = delete;
+    ARPProxyTable& operator=(const ARPProxyTable&) = delete;
+
+    std::map<std::string, ProxyEntry> m_entries; // Proxy ARP 테이블을 위한 맵
+    std::string IpToString(const unsigned char* ipAddress) const;
 };

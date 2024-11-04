@@ -251,7 +251,6 @@ void CNILayer::PacketStartDriver()
     AfxBeginThread(ReadingThread, this); //패킷을 수신하는 스레드 시작
 }
 
-
 //순서 7번
 //void CNILayer::StopPacketDriver()
 //{

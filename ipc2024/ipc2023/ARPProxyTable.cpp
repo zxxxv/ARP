@@ -13,18 +13,29 @@ ARPProxyTable::~ARPProxyTable() {
 
 }
 
-
-std::string ARPProxyTable::IpToString(const unsigned char ipAddress[4]) const {
-    std::ostringstream oss{};  // 문자열 스트림 생성
+std::string ARPProxyTable::IpToString(const unsigned char* ipAddress) const {
+    std::ostringstream oss{};
     oss << static_cast<int>(ipAddress[0]) << "."
         << static_cast<int>(ipAddress[1]) << "."
         << static_cast<int>(ipAddress[2]) << "."
-        << static_cast<int>(ipAddress[3]);  // 각 바이트를 '.'으로 연결
-    return oss.str();  // 문자열 스트림의 결과를 반환
+        << static_cast<int>(ipAddress[3]);
+    return oss.str();
 }
 
 
+
 // 테이블에 항목 추가
+//void ARPProxyTable::AddEntry(const CString& deviceName, const unsigned char ipAddress[4], const unsigned char macAddress[6]) {
+//    ProxyEntry entry;
+//    entry.deviceName = deviceName;
+//    memcpy(entry.MACAddress, macAddress, sizeof(entry.MACAddress)); // MAC 주소 복사
+//
+//    // IP 주소를 문자열로 변환하여 키로 사용
+//    std::string ipKey = IpToString(ipAddress);
+//
+//    m_entries[ipKey] = entry;
+//}
+
 void ARPProxyTable::AddEntry(const CString& deviceName, const unsigned char ipAddress[4], const unsigned char macAddress[6]) {
     ProxyEntry entry;
     entry.deviceName = deviceName;
@@ -32,9 +43,11 @@ void ARPProxyTable::AddEntry(const CString& deviceName, const unsigned char ipAd
 
     // IP 주소를 문자열로 변환하여 키로 사용
     std::string ipKey = IpToString(ipAddress);
+    std::cout << "Adding Entry with IP: " << ipKey << std::endl; // 추가하려는 IP 주소 확인
 
     m_entries[ipKey] = entry;
 }
+
 
 // 모든 항목 삭제
 void ARPProxyTable::ClearTable() {
@@ -42,9 +55,32 @@ void ARPProxyTable::ClearTable() {
 }
 
 // IP 주소 항목 검색
+//ProxyEntry* ARPProxyTable::FindEntryByIP(const unsigned char* ipAddress) {
+//    // IP 주소를 문자열로 변환하여 키로 사용
+//    std::string ipKey = IpToString(ipAddress);
+//
+//    auto it = m_entries.find(ipKey);
+//    if (it != m_entries.end()) {
+//        return &(it->second);
+//    }
+//    return nullptr;  // 해당 IP 주소가 없음
+//}
+
+//ProxyEntry* ARPProxyTable::FindEntryByIP(const unsigned char* ipAddress) {
+//    // IP 주소를 문자열로 변환하여 키로 사용
+//    std::string ipKey = IpToString(ipAddress);
+//
+//    auto it = m_entries.find(ipKey);
+//    if (it != m_entries.end()) {
+//        return &(it->second);
+//    }
+//    return nullptr;  // 해당 IP 주소가 없음
+//}
+
 ProxyEntry* ARPProxyTable::FindEntryByIP(const unsigned char* ipAddress) {
     // IP 주소를 문자열로 변환하여 키로 사용
     std::string ipKey = IpToString(ipAddress);
+    std::cout << "Searching for IP: " << ipKey << std::endl; // 검색하려는 IP 주소 확인
 
     auto it = m_entries.find(ipKey);
     if (it != m_entries.end()) {
@@ -52,6 +88,7 @@ ProxyEntry* ARPProxyTable::FindEntryByIP(const unsigned char* ipAddress) {
     }
     return nullptr;  // 해당 IP 주소가 없음
 }
+
 
 // IP 주소 항목 삭제
 void ARPProxyTable::RemoveEntryByIP(const unsigned char ipAddress[4]) {
