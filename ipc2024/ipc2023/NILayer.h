@@ -42,11 +42,11 @@ public:
 	virtual ~CNILayer();
 
 	//
+	pcap_if_t* m_pAdapterList[NI_COUNT_NIC];//
 
 protected:
 	int			m_iNumAdapter;
 	int			m_index;
-	pcap_if_t* m_pAdapterList[NI_COUNT_NIC];
 };
 
 #endif // !defined(AFX_NILayer_H__7857C9C2_B459_4DC8_B9B3_4E6C8B587B29__INCLUDED_)

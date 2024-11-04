@@ -527,7 +527,7 @@ void Cipc2023Dlg::OnEnChangeGarpMac()
 
 void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
 {
-	ProxyDialog dlg;
+	ProxyDialog dlg(nullptr, m_NI->m_pAdapterList);
 	if (dlg.DoModal() == IDOK)
 	{
 		// 자식 대화상자에서 데이터를 가져옴

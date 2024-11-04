@@ -1,28 +1,60 @@
 ﻿#pragma once
-#include "afxdialogex.h"
 
+#include "pch.h"
+#include "ipc2023.h"
+#include "afxdialogex.h"
+#include "NILayer.h"  // CNILayer 포함
+#include "ipc2023Dlg.h"
+
+//#ifdef _DEBUG
+//#undef THIS_FILE
+//static char THIS_FILE[] = __FILE__;
+//#define new DEBUG_NEW
+//#endif
 
 // ProxyDialog 대화 상자
 
 class ProxyDialog : public CDialogEx
 {
-	DECLARE_DYNAMIC(ProxyDialog)
+    DECLARE_DYNAMIC(ProxyDialog)
 
 public:
-	ProxyDialog(CWnd* pParent = nullptr);   // 표준 생성자입니다.
-	virtual ~ProxyDialog();
+    ProxyDialog(CWnd* pParent = nullptr, pcap_if_t** adapterList = nullptr);   // 표준 생성자입니다.
+    virtual ~ProxyDialog();
 
-
-// 대화 상자 데이터입니다.
+    // 대화 상자 데이터입니다.
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_DIALOG1 };
+    enum { IDD = IDD_DIALOG1 };
 #endif
 
 protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 지원입니다.
+    virtual void DoDataExchange(CDataExchange* pDX); // DDX/DDV 지원입니다.
+    DECLARE_MESSAGE_MAP()
 
-	DECLARE_MESSAGE_MAP()
+private:
+    // CNILayer 포인터 추가
+    // CNILayer* m_NI;
+    int m_index; // 선택된 어댑터의 인덱스
+    CString pSrcEdit; // 소스 주소를 저장할 변수
+    pcap_if_t** m_pAdapterList;//
+
+    // 상태 설정 함수
+    // void SetDlgState(int state);
+
+    enum {
+        IPC_INITIALIZING,
+        IPC_READYTOSEND,
+        IPC_WAITFORACK,
+        IPC_ERROR,
+        IPC_COMBO_SET
+    };
+
 public:
-	afx_msg void OnBnClickedOk();
-	afx_msg void OnBnClickedCancel();
+    CComboBox m_combop; // 어댑터 선택 콤보 박스
+    afx_msg void OnBnClickedOk();
+    afx_msg void OnBnClickedCancel();
+    afx_msg void OnCbnSelchangeCombop();
+    afx_msg void OnIpnFieldchangedIpaddressp(NMHDR* pNMHDR, LRESULT* pResult);
+    afx_msg void OnEnChangeEditp();
+    BOOL OnInitDialog();
 };
