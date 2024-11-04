@@ -146,14 +146,10 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
         memcpy(buffer + 6, data->source_ip, 4);  // source_ip 복사 (4 bytes)
         mp_aUpperLayer[0]->Receive(buffer);
 
-        // 타겟 ip 주소가 나의 ip 주소와 같은지
-        if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0) {
+        // 타겟 ip 주소가 나의 ip 주소와 같은지 or 프록시 테이블에 존재하는지
+        if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0 || proxyTable.FindEntryByIP(data->target_ip)) {
             createReplyPacket(payload_data);
         }
-
-        /*if (memcmp(data->target_ip, sender_ip, data->ip_len) == 0 || proxy table에 있음?) {
-            createReplyPacket(payload_data);
-        }*/
     }
     //받은 ARP OP code가 2 - ARP cashe table 업데이트 
     else if (data->op_code == 2) {

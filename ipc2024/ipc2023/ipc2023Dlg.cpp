@@ -108,6 +108,8 @@ BEGIN_MESSAGE_MAP(Cipc2023Dlg, CDialogEx)
 	ON_BN_CLICKED(IDC_PROXY_ADD, &Cipc2023Dlg::OnBnClickedProxyAdd)
 	ON_BN_CLICKED(IDC_PROXY_DELETE, &Cipc2023Dlg::OnBnClickedProxyDelete)
 	ON_BN_CLICKED(IDC_BUTTON_GARP_SEND, &Cipc2023Dlg::OnBnClickedButtonGarpSend)
+	ON_BN_CLICKED(IDC_PROXY_TABLE, &Cipc2023Dlg::OnBnClickedProxyTable)
+	ON_EN_CHANGE(IDC_GARP_MAC, &Cipc2023Dlg::OnEnChangeGarpMac)
 END_MESSAGE_MAP()
 
 
@@ -161,6 +163,8 @@ BOOL Cipc2023Dlg::OnInitDialog()
 	m_ListCtrlP.InsertColumn(2, _T("Ethernet Address"), LVCFMT_LEFT, rtP.Width() + 150);
 
 	GetDlgItem(IDC_BUTTON_IP_SEND)->EnableWindow(FALSE);
+
+	GetDlgItem(IDC_BUTTON_GARP_SEND)->EnableWindow(FALSE);
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -420,11 +424,6 @@ void Cipc2023Dlg::OnBnClickedButtonIpSend() // 전송 버튼
 		// ARP 레이어 패킷 1번 전송시작
 		m_ARP->createRequestPacket();
 
-		// ARP 캐시 테이블 출력
-		//m_ARP->printCache();
-
-		// ARP 캐시 테이블 업데이트 - 여기서 할지 arp 레이어에서 패킷 전송하고 할지
-
 	}
 	else {
 		AfxMessageBox(_T("IP address를 입력하세요"));
@@ -464,7 +463,7 @@ void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 	}
 }
 
-void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정 함수
+void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정
 {
 	int itemCount = m_ListCtrl.GetItemCount();
 	for (int i = 0; i <= itemCount; ++i)
@@ -508,6 +507,24 @@ void Cipc2023Dlg::TimeoutEntryDelete(const unsigned char* ip)
 	m_ListCtrl.DeleteItem(Index);
 }
 
+void Cipc2023Dlg::OnBnClickedButtonGarpSend()
+{
+	CString strMac;
+	m_garp_mac.GetWindowText(strMac);
+	Str2UCHAR(strMac, m_ucGaprSrcAddrArray);
+	m_Eth->SetSourceAddress(m_ucGaprSrcAddrArray);
+	m_ARP->createGarpPacket(m_ucGaprSrcAddrArray);
+}
+
+void Cipc2023Dlg::OnEnChangeGarpMac()
+{
+	CString strMac;
+	m_garp_mac.GetWindowText(strMac);
+
+	// GARP MAC 입력란이 비어 있지 않은 경우에만 Send 버튼 활성화
+	GetDlgItem(IDC_BUTTON_GARP_SEND)->EnableWindow(!strMac.IsEmpty());
+}
+
 void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
 {
 	ProxyDialog dlg;
@@ -520,7 +537,12 @@ void Cipc2023Dlg::OnBnClickedProxyAdd() // 프록시 테이블 추가
 		
 		// 값 프록시 테이블에 추가
 		// 리스트 형식으로 dlg에서 프록시 테이블 관리
-	}	//
+
+		unsigned char ipAddress[4] = { 192, 168, 1, 1 };
+		unsigned char macAddress[6] = { 0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E };
+		CString deviceName = _T("Router");
+		proxyTable.AddEntry(deviceName, ipAddress, macAddress);
+	}
 }
 
 
@@ -544,15 +566,15 @@ void Cipc2023Dlg::OnBnClickedProxyDelete() // 프록시 테이블 삭제
 		m_ListCtrlP.DeleteItem(idx);
 
 		// 프록시 테이블에 있는 엔트리 제거하기
+		proxyTable.RemoveEntryByIP(value);
 	}
+
+	unsigned char value1[4] = { 192, 168, 1, 1 };
+	// 프록시 테이블에 있는 엔트리 제거하기
+	proxyTable.RemoveEntryByIP(value1);
 }
 
-
-void Cipc2023Dlg::OnBnClickedButtonGarpSend() //
-{
-	CString strMac;
-	m_garp_mac.GetWindowText(strMac);
-	Str2UCHAR(strMac, m_ucGaprSrcAddrArray);
-	m_Eth->SetSourceAddress(m_ucGaprSrcAddrArray);
-	m_ARP->createGarpPacket(m_ucGaprSrcAddrArray);
+void Cipc2023Dlg::OnBnClickedProxyTable()
+{	
+	proxyTable.DisplayAllEntries();
 }

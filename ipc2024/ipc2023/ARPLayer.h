@@ -2,6 +2,7 @@
 #include "BaseLayer.h"
 #include "ARPCacheTable.h"
 #include "pch.h"
+#include "ARPProxyTable.h"
 
 
 class CARPLayer : public CBaseLayer, public ARPCacheTable
@@ -45,7 +46,7 @@ public:
     unsigned char sender_mac[6];  // MAC 주소를 저장하는 변수
     unsigned char sender_ip[4];   // 나의 IP 주소를 저장하는 변수
     unsigned char target_ip[4];   // 타겟 IP 주소를 저장하는 변수
-
+    ARPProxyTable proxyTable;
 
     // 총 28bytes
     typedef struct _APR_HEADER {

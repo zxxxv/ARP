@@ -8,6 +8,7 @@
 #include "EthernetLayer.h"	// Added by ClassView
 #include "NILayer.h"
 #include "ARPLayer.h"
+#include "ARPProxyTable.h"
 
 // Cipc2023Dlg 대화 상자
 class Cipc2023Dlg : public CDialogEx, public CBaseLayer
@@ -93,6 +94,7 @@ public:
 	UCHAR m_ucGaprSrcAddrArray[6];
 	UCHAR m_ucDstAddrArray[6];
 	UCHAR m_unused[100];
+	ARPProxyTable proxyTable;
 	afx_msg void OnCbnSelchangeCombo(); // 어댑터 선택
 	int m_index;
 	afx_msg void OnBnClickedButtonDelete();
@@ -108,4 +110,6 @@ public:
 	afx_msg void OnBnClickedProxyDelete();
 	afx_msg void OnBnClickedButtonGarpSend();
 	CEdit m_garp_mac;			// 변경한 mac 주소
+	afx_msg void OnBnClickedProxyTable();
+	afx_msg void OnEnChangeGarpMac();
 };
