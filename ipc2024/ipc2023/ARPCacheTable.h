@@ -59,6 +59,17 @@ public:
     removeEntry: 입력된 ip 주소를 기반으로 해당되는 entry를 테이블에서 제거하는 함수
     */
 
+    bool editEntryMacAddress(unsigned char* ip, unsigned char* mac);
+    /*
+    editEntry: 엔트리의 mac 주소를 바꾸는 함수
+        # parameter
+        - ip: 엔트리를 식별하기 위한 ip 주소
+        - mac: 바꾸고자하는 mac 주소
+        # return value
+        - true
+        - false
+    */
+
     bool clearAll();
 
     // 캐시 출력 (디버깅용)

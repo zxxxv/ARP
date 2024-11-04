@@ -42,6 +42,13 @@ void ARPCacheTable::handleArpReply(const unsigned char* ip) {
     }
 }
 
+bool ARPCacheTable::editEntryMacAddress(unsigned char* ip, unsigned char* mac) {
+    if (sizeof(ip) != 4 | sizeof(mac) != 6) false;
+    std::string strIP = binaryToString(ip);
+    auto it = cache.find(strIP);
+    it->second->
+}
+
 void ARPCacheTable::removeEntry(const unsigned char* ip) {
     std::string strIP = binaryToString(ip);
     auto it = cache.find(strIP);
