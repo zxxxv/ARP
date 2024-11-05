@@ -8,6 +8,8 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
+#define TO_BIG_ENDIAN_16(x) ((unsigned short)(((x & 0x00FF) << 8) | ((x & 0xFF00) >> 8)))
+
 CARPLayer::CARPLayer(char* pName)
     : CBaseLayer(pName)
 {
@@ -22,8 +24,8 @@ CARPLayer::~CARPLayer()
 void CARPLayer::ResetHeader()
 {
     // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
-    arpHeader.hard_type = 1;
-    arpHeader.prot_type = 0x0800;
+    arpHeader.hard_type = TO_BIG_ENDIAN_16(0x0001);    // Ethernet (1)
+    arpHeader.prot_type = TO_BIG_ENDIAN_16(0x0800);    // IPv4 (0x0800)
     arpHeader.mac_len = 6;
     arpHeader.ip_len = 4;
     arpHeader.op_code = 0;
@@ -67,7 +69,7 @@ void CARPLayer::createRequestPacket() {
         createPacket(1);
     }
 }
-//
+
 void CARPLayer::createGarpPacket(unsigned char* mac) {    
     // ARP Header
     // Source IP		: Sender's
@@ -80,11 +82,13 @@ void CARPLayer::createGarpPacket(unsigned char* mac) {
     // Destination Mac	: Broadcast
 
     const unsigned char broadcast_mac[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+    const unsigned char zero_ip[4] = { 0x00, 0x00, 0x00, 0x00 };
 
     ResetHeader();
+
     memcpy(arpHeader.source_mac, mac, 6);
     memcpy(arpHeader.source_ip, sender_ip, 4);
-    memcpy(arpHeader.target_ip, sender_ip, 4);
+    memcpy(arpHeader.target_ip, zero_ip, 4);
     memcpy(arpHeader.target_mac, broadcast_mac, 6);
 
     createPacket(1);
@@ -105,13 +109,14 @@ void CARPLayer::createReplyPacket(unsigned char* payload_data) {
 
     // Source 필드 설정:
     memcpy(arpHeader.source_mac, sender_mac, data->mac_len);
-    memcpy(arpHeader.source_ip, sender_ip, data->ip_len);
+    memcpy(arpHeader.source_ip, data->target_ip, data->ip_len);
 
     createPacket(2);
 };
 
 void CARPLayer::createPacket(unsigned short op_code) {
-    arpHeader.op_code = op_code;
+    //arpHeader.op_code = op_code;
+    arpHeader.op_code = TO_BIG_ENDIAN_16(op_code);      // ARP Request (1)
     SetEthernetDest(arpHeader.target_mac);
     Send((unsigned char*)&arpHeader, ARP_HEADER_SIZE);
 };
@@ -138,7 +143,7 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
 
     //받은 ARP OP code가 1 - ARP 응답 패킷 생성 함수 호출
     if (data->op_code == 1) {
-
+        
         addOrUpdate(data->source_ip, data->source_mac, true, true); // 이미 존재하면 덮어씌우는 것으로 바꾸기
         // dlg 업데이트 하기
         unsigned char buffer[10];
@@ -171,7 +176,3 @@ void CARPLayer::onEntryTimeout(const unsigned char* ip) {
     ((Cipc2023Dlg*)this->GetUpperLayer(0))->TimeoutEntryDelete(ip);
     removeEntry(ip);
 }
-
-// GARP 요청 보내는 기능만 만들면 됨
-// 받을때는 들어오는 대로 항상 mac주소 rewrite 현재 ip 주소만 대조하여 있으면 exist 없으면 update
-// dlg는 받은대로 업데이트

@@ -24,7 +24,7 @@ bool ARPCacheTable::addOrUpdate(const unsigned char* ip, const unsigned char* ma
     std::string strIP = binaryToString(ip);
     auto it = cache.find(strIP);
     if (it != cache.end()) {
-        //AfxMessageBox(_T("exist"));
+        AfxMessageBox(_T("exist"));
         // 수정하는 함수
         editEntryMacAddress(ip, mac);
         return false;

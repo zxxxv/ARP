@@ -50,7 +50,6 @@ ProxyEntry* ARPProxyTable::FindEntryByIP(const unsigned char* ipAddress) {
     return nullptr;  // 해당 IP 주소가 없음
 }
 
-
 // IP 주소 항목 삭제
 BOOL ARPProxyTable::RemoveEntryByIP(const unsigned char* ipAddress) {
     // IP 주소를 문자열로 변환하여 키로 사용

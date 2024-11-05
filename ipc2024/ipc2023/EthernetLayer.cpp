@@ -12,6 +12,8 @@ static char THIS_FILE[] = __FILE__;
 #define new DEBUG_NEW
 #endif
 
+#define TO_BIG_ENDIAN_16(x) ((unsigned short)(((x & 0x00FF) << 8) | ((x & 0xFF00) >> 8)))
+
 CEthernetLayer::CEthernetLayer(char* pName)
     : CBaseLayer(pName)
 {
@@ -28,7 +30,7 @@ void CEthernetLayer::ResetHeader()
     // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
     memset(m_sHeader.enet_dstaddr, 0, 6);
     memset(m_sHeader.enet_srcaddr, 0, 6);
-    memset(m_sHeader.enet_data, ETHER_MAX_DATA_SIZE, 6);
+    memset(m_sHeader.enet_data, 0, ETHER_MAX_DATA_SIZE);
     m_sHeader.enet_type = 0;
 }
 
@@ -49,7 +51,8 @@ BOOL CEthernetLayer::Send(unsigned char* payload_data, int payload_data_len, uns
 {
     // ChatApp 계층에서 받은 App 계층의 Frame 길이만큼 Ethernet계층의 data로 넣는다
     memcpy(m_sHeader.enet_data, payload_data, payload_data_len);
-    m_sHeader.enet_type = type;
+    m_sHeader.enet_type = TO_BIG_ENDIAN_16(type);
+    //m_sHeader.enet_type = type;
     BOOL bSuccess = FALSE;
 
     // 만든 이더넷 data에 이더넷 헤드를 추가해서 NI 계층으로 보냄
@@ -74,9 +77,13 @@ BOOL CEthernetLayer::Receive(unsigned char* payload_data)
     // 내가 보낸 값이 나에게 온건지
     if (memcmp(pFrame->enet_srcaddr, m_sHeader.enet_srcaddr, 6) == 0)
         return FALSE;
-
-    if (pFrame->enet_type == 0x0806)
+    
+    unsigned short type = TO_BIG_ENDIAN_16(pFrame->enet_type);
+    if (type == 0x0806)
         bSuccess = mp_aUpperLayer[0]->Receive((unsigned char*)pFrame->enet_data);
+
+    /*if (pFrame->enet_type == 0x0806)
+        bSuccess = mp_aUpperLayer[0]->Receive((unsigned char*)pFrame->enet_data);*/
 
     return bSuccess;
 }
