@@ -512,6 +512,7 @@ void Cipc2023Dlg::OnBnClickedButtonGarpSend()
 	CString strMac;
 	m_garp_mac.GetWindowText(strMac);
 	Str2UCHAR(strMac, m_ucGaprSrcAddrArray);
+	m_ARP->SetSenderMac(m_ucGaprSrcAddrArray);
 	m_Eth->SetSourceAddress(m_ucGaprSrcAddrArray);
 	m_ARP->createGarpPacket(m_ucGaprSrcAddrArray);
 }

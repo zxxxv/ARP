@@ -24,11 +24,11 @@ CARPLayer::~CARPLayer()
 void CARPLayer::ResetHeader()
 {
     // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
-    arpHeader.hard_type = TO_BIG_ENDIAN_16(0x0001);    // Ethernet (1)
+    arpHeader.hard_type = 0x0001;                      // Ethernet (1)
     arpHeader.prot_type = TO_BIG_ENDIAN_16(0x0800);    // IPv4 (0x0800)
     arpHeader.mac_len = 6;
     arpHeader.ip_len = 4;
-    arpHeader.op_code = 0;
+    arpHeader.op_code = 0x00;
     memset(arpHeader.source_mac, 6, 0);
     memset(arpHeader.source_ip, 4, 0);
     memset(arpHeader.target_mac, 6, 0);
@@ -38,6 +38,10 @@ void CARPLayer::ResetHeader()
 void CARPLayer::SetSenderInfo(const unsigned char* macAddress, const unsigned char* ipAddress) {
     memcpy(sender_mac, macAddress, 6);    // MAC 주소 설정
     memcpy(sender_ip, ipAddress, 4);      // 나의 IP 주소 설정
+}
+
+void CARPLayer::SetSenderMac(const unsigned char* macAddress) {
+    memcpy(sender_mac, macAddress, 6);    // MAC 주소 설정
 }
 
 void CARPLayer::SetTargetInfo(const unsigned char* targetIp) {
@@ -66,7 +70,7 @@ void CARPLayer::createRequestPacket() {
         memcpy(arpHeader.source_ip, sender_ip, 4);
         memcpy(arpHeader.target_ip, target_ip, 4);
 
-        createPacket(1);
+        createPacket(0x0001);
     }
 }
 
@@ -88,10 +92,10 @@ void CARPLayer::createGarpPacket(unsigned char* mac) {
 
     memcpy(arpHeader.source_mac, mac, 6);
     memcpy(arpHeader.source_ip, sender_ip, 4);
-    memcpy(arpHeader.target_ip, zero_ip, 4);
+    memcpy(arpHeader.target_ip, sender_ip, 4);
     memcpy(arpHeader.target_mac, broadcast_mac, 6);
 
-    createPacket(1);
+    createPacket(0x0001);
 }
 
 void CARPLayer::createReplyPacket(unsigned char* payload_data) {
@@ -111,12 +115,11 @@ void CARPLayer::createReplyPacket(unsigned char* payload_data) {
     memcpy(arpHeader.source_mac, sender_mac, data->mac_len);
     memcpy(arpHeader.source_ip, data->target_ip, data->ip_len);
 
-    createPacket(2);
+    createPacket(0x0002);
 };
 
 void CARPLayer::createPacket(unsigned short op_code) {
-    //arpHeader.op_code = op_code;
-    arpHeader.op_code = TO_BIG_ENDIAN_16(op_code);      // ARP Request (1)
+    arpHeader.op_code = op_code;
     SetEthernetDest(arpHeader.target_mac);
     Send((unsigned char*)&arpHeader, ARP_HEADER_SIZE);
 };

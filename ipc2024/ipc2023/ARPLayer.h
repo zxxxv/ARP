@@ -31,6 +31,8 @@ public:
     //dlg에서 나의 맥, 아이피
     void SetSenderInfo(const unsigned char* sender_mac, const unsigned char* sender_ip);
 
+    void SetSenderMac(const unsigned char* macAddress);
+
     //dlg에서 브로드캐스트 보낼 ip 받아오는 한수
     void SetTargetInfo(const unsigned char* target_ip);
 
