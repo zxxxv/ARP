@@ -75,8 +75,8 @@ BOOL CEthernetLayer::Receive(unsigned char* payload_data)
         memcmp(pFrame->enet_dstaddr, broadcastAddr, 6) != 0)
         return FALSE;
     // 내가 보낸 값이 나에게 온건지
-    /*if (memcmp(pFrame->enet_srcaddr, m_sHeader.enet_srcaddr, 6) == 0)
-        return FALSE;*/
+    if (memcmp(pFrame->enet_srcaddr, m_sHeader.enet_srcaddr, 6) == 0)
+        return FALSE;
     
     unsigned short type = TO_BIG_ENDIAN_16(pFrame->enet_type);
     if (type == 0x0806)

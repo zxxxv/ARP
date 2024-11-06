@@ -24,11 +24,11 @@ CARPLayer::~CARPLayer()
 void CARPLayer::ResetHeader()
 {
     // 이더넷 목적지 주소, 나의 주소, 타입, Data를 초기화함
-    arpHeader.hard_type = 0x0001;                      // Ethernet (1)
+    arpHeader.hard_type = TO_BIG_ENDIAN_16(0x0001);    // Ethernet (1)
     arpHeader.prot_type = TO_BIG_ENDIAN_16(0x0800);    // IPv4 (0x0800)
     arpHeader.mac_len = 6;
     arpHeader.ip_len = 4;
-    arpHeader.op_code = 0x00;
+    arpHeader.op_code = 0;
     memset(arpHeader.source_mac, 6, 0);
     memset(arpHeader.source_ip, 4, 0);
     memset(arpHeader.target_mac, 6, 0);
@@ -86,7 +86,7 @@ void CARPLayer::createGarpPacket(unsigned char* mac) {
     // Destination Mac	: Broadcast
 
     const unsigned char broadcast_mac[6] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-    const unsigned char zero_ip[4] = { 0x00, 0x00, 0x00, 0x00 };
+    //const unsigned char zero_ip[4] = { 0x00, 0x00, 0x00, 0x00 };
 
     ResetHeader();
 
@@ -129,9 +129,6 @@ BOOL CARPLayer::Send(unsigned char* ppayload, int nlength)
     BOOL success = ((CEthernetLayer*)(this->GetUnderLayer()))->Send(ppayload, ARP_HEADER_SIZE, ARP_LAYER_IDENTIFIER);  // ARP 패킷 타입 0x0806
 
     if (success) {
-        // target_ip, target_mac, incomplete으로 테이블에 추가
-        //addOrUpdate(arpHeader.target_ip, arpHeader.target_mac, false, false);
-        //addOrUpdate(arpHeader.target_ip, 0, false, false);
         AfxMessageBox(_T("패킷 전송 성공 - ARP Send"));
     }
     else {

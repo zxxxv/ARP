@@ -230,7 +230,7 @@ void CNILayer::PacketStartDriver()
 {
     char errbuf[PCAP_ERRBUF_SIZE];
 
-    m_AdapterObject = pcap_open_live(m_pAdapterList[m_index]->name, 1500, 1, 2000, errbuf);
+    m_AdapterObject = pcap_open_live(m_pAdapterList[m_index]->name, 65536, 1, 2000, errbuf);
     /*
     pcap_open_live: 인자로 주어진 네트워크 장치에 대한 라이브 패킷 캡처를 시작하는 함수
         # paremeter

@@ -466,7 +466,9 @@ void Cipc2023Dlg::OnBnClickedButtonSelect() // 선택 버튼
 void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, const CString& status) // ListCtrl 수정
 {
 	int itemCount = m_ListCtrl.GetItemCount();
-	for (int i = 0; i <= itemCount; ++i)
+	bool itemFound = false;
+
+	for (int i = 0; i < itemCount; ++i)
 	{
 		CString column1Value = m_ListCtrl.GetItemText(i, 0);
 
@@ -474,16 +476,21 @@ void Cipc2023Dlg::UpdateListCtrlItem(const CString& ip, const CString& mac, cons
 		{
 			m_ListCtrl.SetItemText(i, 1, mac);
 			m_ListCtrl.SetItemText(i, 2, status);
+			itemFound = true;
 			break;
 		}
-		else {
-			int num = m_ListCtrl.GetItemCount();
-			m_ListCtrl.InsertItem(num, ip);
-			m_ListCtrl.SetItem(num, 1, LVIF_TEXT, mac, 0, 0, 0, 0);
-			m_ListCtrl.SetItem(num, 2, LVIF_TEXT, status, 0, 0, 0, 0);
-		}
+	}
+
+	// 동일한 IP를 찾지 못한 경우에만 새 항목 추가
+	if (!itemFound)
+	{
+		int num = m_ListCtrl.GetItemCount();
+		m_ListCtrl.InsertItem(num, ip);
+		m_ListCtrl.SetItem(num, 1, LVIF_TEXT, mac, 0, 0, 0, 0);
+		m_ListCtrl.SetItem(num, 2, LVIF_TEXT, status, 0, 0, 0, 0);
 	}
 }
+
 
 void Cipc2023Dlg::OnBnClickedArpTable()
 {
