@@ -160,6 +160,8 @@ BOOL CARPLayer::Receive(unsigned char* payload_data)
     else if (data->op_code == 2) {
         // ARP 캐시 테이블 업데이트
         handleArpReply(data->source_ip);
+        editEntryMacAddress(data->source_ip, data->source_mac);
+        //addOrUpdate(data->source_ip, data->source_mac, true, true);
         
         // dlg 업데이트
         unsigned char buffer[10];

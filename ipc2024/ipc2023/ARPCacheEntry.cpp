@@ -95,8 +95,8 @@ void ARPCacheEntry::onArpReplyReceived() {
 }
 
 bool ARPCacheEntry::editMac(const unsigned char* mac) {
-    if (sizeof(mac) != 6) return false;
-    memcpy(m_mac, mac, 6);
+    if (!mac) return false; // null 포인터 체크
+    memcpy(m_mac, mac, 6); // MAC 주소 복사
     return true;
 }
 
